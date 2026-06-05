@@ -613,3 +613,41 @@ plt.savefig('tradeoff_curve.png', dpi=150, bbox_inches='tight')
 ```
 
 > **Sažetak statističke obrade:** Za svaku od 3 hipoteze: (1) Wilcoxon test za latenciju, (2) direktna računica za memoriju i recall, (3) trade-off krivulja za vizualizaciju. Sve uz p < 0.05 prag i jasno navedenim effect size-om.
+
+---
+
+# Unapređenje metodologije i struktura naučnog rada
+
+## 1. Rešavanje "Problema narandži i jabuka" (Qdrant vs FAISS)
+Kao što je navedeno u metodologiji, Qdrant unosi mrežni overhead (Docker, HTTP/gRPC, Rust-to-Python serijalizacija), dok FAISS radi direktno u memoriji procesa (C++ bindings). Ako se samo uporede sirove latencije, FAISS će "pobijediti" HNSW iz Qdrant-a, ali ne zato što je algoritam bolji, već zbog arhitekture.
+
+> **Naučni doprinos:** U radu jasno definiši da ne porediš samo algoritme, već **"In-process biblioteku (bare-metal)" naspram "Produkcijskog mikroservisa (cloud-ready)"**. Izmjeri prosječan "ping" ili latenciju praznog upita prema Qdrant-u i to navedi kao bazni overhead sistema. To radu daje inženjersku dubinu.
+
+---
+
+## 2. Efekat veličine (Effect Size) pored p-vrijednosti
+Statistička značajnost ($p < 0.05$) govori samo da razlika između indeksa nije slučajna. Međutim, kod velikog broja uzoraka (1000 upita), čak i mikroskopske razlike u latenciji mogu dati $p < 0.05$.
+
+* **Dodatak za paper:** Pored Wilcoxon testa, izračunaj i **Effect Size** (npr. *Match Pair Rank-Biserial Correlation* ili jednostavni *Cohen's d* ekvivalent za neparametrijske podatke). To će pokazati koliko je ta razlika zapravo velika i praktično značajna.
+
+---
+
+## 3. Detaljna matrica hardvera (Reproducibility)
+Naučni radovi zahtijevaju da eksperiment bude potpuno reproduktivan. U poglavlju "Eksperimentalno okruženje" potrebno je precizno navesti:
+* Tačan model CPU-a, broj dodijeljenih jezgara Docker kontejneru (npr. `--cpus="4"`).
+* Brzinu RAM memorije (npr. DDR4 3200MHz) jer su grafovski indeksi poput HNSW-a ekstremno zavisni od brzine pristupa memoriji (RAM-bound operacije).
+
+---
+
+## Predložena struktura naučnog rada
+
+Ako želiš da iz ovoga proizađe strukturiran naučni članak (cca. 8–12 stranica), drži se provjerenog IMRAD formata:
+
+| Poglavlje | Sadržaj specifičan za tvoj rad |
+| :--- | :--- |
+| **1. Introduction** | Problem eksplozije nestrukturiranih podataka. Zašto je bitan pretraživač vektora u eri LLM-ova i RAG sistema. Cilj rada. |
+| **2. Background & Related Work** | Kako rade ANN algoritmi? Kratka teorija iza HNSW (skip-lists na grafovima) i IVF-PQ (k-means + kvantizacija podprostora). |
+| **3. Methodology** | MS MARCO dataset, `all-mpnet-base-v2` model. Opis 4 konfiguracije. Formulacija H1, H2 i H3 hipoteza. Arhitekturalna razlika Qdrant/FAISS. |
+| **4. Experimental Setup** | Hardverske specifikacije, Docker konfiguracija, parametri pretrage (`nprobe` i `ef_search` opsezi). |
+| **5. Results & Discussion** | Tabela sa deskriptivnom statistikom. Rezultati Wilcoxon testa. **Glavna stvar:** Grafikon Recall-Latency krive i analiza memorijskog footprinta. |
+| **6. Conclusion** | Kratak rezime. Koji indeks izabrati u zavisnosti od budžeta (RAM) i zahtjeva sistema (latencija). Budući rad (npr. testiranje na GPU). |
