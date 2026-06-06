@@ -1,2 +1,98 @@
 \section{Uvod}
 \label{sec:uvod}
+
+Vektorske baze podataka postale su ključna infrastrukturna komponenta
+modernih sistema vještačke inteligencije, omogućavajući semantičku pretragu
+nad milijardama visokodimenzionalnih reprezentacija teksta, slika i zvuka.
+Kako se ovi sistemi šire iz istraživačkih laboratorija u produkcijska
+okruženja, pitanja performansi, memorijske efikasnosti i skalabilnosti
+postaju centralna inžinjerska i istraživačka pitanja. Ovaj rad istražuje
+kako izbor indeksne strukture i strategija kompresije vektora utiče na
+latenciju upita, tačnost pretrage i potrošnju memorije u realnom
+eksperimentalnom okruženju.
+
+\subsection{Motivacija}
+\label{sec:motivacija}
+
+Primjena velikih jezičkih modela i višemodalnih arhitektura dovela je do
+eksplozivnog rasta vektorskih baza podataka u industrijskim sistemima.
+Embeddingsi koji se generišu modelima poput BERT-a, CLIP-a i srodnih
+arhitektura tipično su dimenzionalnosti od $768$ do $2048$ i pohranjuju se
+kao \foreignlanguage{english}{float32} vrijednosti.
+Pri pohrani milijardi ovakvih vektora memorijski zahtjevi dosežu i
+nekoliko terabajta, što daleko premašuje kapacitet standardnog
+hardvera~\cite{raja2026memory}.
+
+Osim memorijskog pritiska, visokodimenzionalni prostori uvode i
+računarski izazov poznat kao \emph{prokletstvo dimenzionalnosti}: iscrpna
+pretraga nad svim vektorima skalira linearno s veličinom skupa podataka
+i postaje nepraktična pri web-razmjernim kolekcijama~\cite{ma2026comprehensive}.
+Ovaj problem motiviše razvoj aproksimativnih metoda pretrage koje,
+uz kontrolirani gubitak tačnosti, omogućavaju odgovore u milisekundama.
+Uprkos dostupnosti naprednih indeksnih struktura i tehnika kompresije,
+njihova komparativna analiza u standardizovanim uvjetima ostaje
+nedovoljno istražena, posebno u kontekstu kompromisa između latencije,
+tačnosti i potrošnje memorije na istom skupu podataka.
+
+\subsection{Indeksi i kvantizacija u vektorskim bazama podataka}
+\label{sec:pregled_tehnika}
+
+Savremeni sistemi za vektorsku pretragu oslanjaju se na dvije klase
+tehnika: indeksne strukture i metode kompresije vektora.
+
+Indeksne strukture određuju kako su vektori organizovani radi efikasne
+pretrage. \foreignlanguage{english}{\emph{Flat}} indeks ne vrši nikakvu
+aproksimaciju, svaki upit poredi se s cijelim skupom podataka, što
+garantuje tačne rezultate ali skalira s $\mathcal{O}(n)$ složenošću.
+\foreignlanguage{english}{\emph{Hierarchical Navigable Small World}}
+(HNSW) gradi višeslojni grafovski indeks koji omogućava logaritamsku
+složenost pretrage~\cite{malkov2018efficient}.
+\foreignlanguage{english}{\emph{Inverted File Index}} (IVF) dijeli
+prostor na klastere i pretragu ograničava na podskup
+klastera~\cite{jegou2011product}.
+
+Metode kompresije smanjuju memorijski otisak indeksa kodiranjem vektora
+u kompaktnije reprezentacije. Bez kompresije (\foreignlanguage{english}{Flat})
+svaki vektor zauzima punu \foreignlanguage{english}{float32} preciznost.
+\foreignlanguage{english}{\emph{Binary Quantization}} svodi svaku
+dimenziju na jedan bit, postižući kompresiju $32\times$.
+\foreignlanguage{english}{\emph{Scalar Quantization}} mapira svaku
+dimenziju na $b$-bitni cijeli broj, tipično $b=8$, smanjujući pohranu
+četverostruko.
+\foreignlanguage{english}{\emph{Product Quantization}} dijeli vektore na
+pod-prostore koji se kvantiziraju nezavisno, postižući veće kompresijske
+omjere uz bolju rekonstrukcijsku tačnost od skalarne
+kvantizacije~\cite{raja2026memory}.
+
+\subsection{Ciljevi rada}
+\label{sec:ciljevi}
+
+Cilj ovog rada je empirijska evaluacija i komparativna analiza
+indeksnih struktura i tehnika kvantizacije za vektorsku pretragu na
+\foreignlanguage{english}{MS MARCO} skupu podataka~\cite{msmarco2016},
+koji predstavlja standardni benchmark za zadatke pretrage informacija.
+Eksperimenti su dizajnirani da kvantificiraju kompromise između
+latencije upita, tačnosti pretrage i potrošnje memorije pri različitim
+kombinacijama indeksa i kompresije.
+
+\noindent U skladu s tim, postavljaju se sljedeće istraživačke hipoteze:
+
+\begin{description}
+    \item[H1:] HNSW indeks postiže statistički značajno nižu latenciju
+    upita u poređenju s IVF indeksom na \foreignlanguage{english}{MS MARCO}
+    skupu podataka, uz zadržavanje \foreignlanguage{english}{recall@10}
+    vrijednosti iznad $90\%$.
+
+    \item[H2:] Primjena \foreignlanguage{english}{Product Quantization}
+    tehnike smanjuje memorijski
+    \foreignlanguage{english}{\emph{footprint}} vektorskog indeksa za
+    najmanje $4\times$ u poređenju s nekomprimiranim
+    \foreignlanguage{english}{\emph{flat}} indeksom, uz smanjenje
+    \foreignlanguage{english}{recall@10} manje od $5$ procentnih poena.
+
+    \item[H3:] Kombinacija IVF i \foreignlanguage{english}{Product
+    Quantization} (IVF-PQ) pruža bolji
+    \foreignlanguage{english}{\emph{recall-latency trade-off}} u poređenju
+    sa samostalnim HNSW pristupom kada je memorijski budžet ograničen
+    na ispod $2$\,GB.
+\end{description}

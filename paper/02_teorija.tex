@@ -1,2 +1,393 @@
-\section{Teoretski okvir}
+\section{Teorijski okvir}
 \label{sec:teorijski_okvir}
+
+
+Ovo poglavlje postavlja teorijske temelje neophodne za razumijevanje
+optimizacije vektorskih baza podataka. U prvom dijelu uvodi se koncept
+vektorskih baza podataka i njihove ključne prednosti u odnosu na
+tradicionalne relacione baze. Zatim se opisuje mehanizam nastanka
+vektorskih reprezentacija kroz koncept embeddingsa, od distribucijske
+hipoteze do konkretnih modela poput Word2Vec i GloVe. Treći dio
+posvećen je tehnikama vektorskog indeksiranja, s posebnim naglaskom
+na HNSW i IVF strukture koje omogućavaju efikasnu aproksimativnu
+pretragu u visokodimenzionalnim prostorima. Na kraju se obrađuju
+metode vektorske kvantizacije kojima se smanjuje memorijski otisak
+indeksa uz minimalan gubitak u tačnosti pretrage.
+
+\subsection{Vektorske baze podataka}
+\label{sec:vector_databases}
+
+\emph{Vektori}, posebno oni u visokodimenzionalnim prostorima, predstavljaju
+matematičke reprezentacije podataka kojima se kodiraju semantičke i
+kontekstualne informacije entiteta poput teksta, slika, zvuka i videa.
+Ovi vektori se uglavnom generišu kroz određene srodne modele mašinskog učenja,
+a generisani vektori su obično visokodimenzionalni i mogu se koristiti za
+poređenje sličnosti. Korak pretvaranja izvornih nestrukturiranih podataka u
+vektore predstavlja temelj mnogih aplikacija vještačke inteligencije
+uključujući velike jezičke modele, sisteme za odgovaranje na pitanja,
+prepoznavanje slika, sisteme za preporuke i tako dalje. Međutim, u pogledu
+upravljanja i pretraživanja visokodimenzionalnih vektorskih podataka,
+tradicionalne baze podataka dizajnirane za rukovanje strukturiranim podacima
+često su neadekvatne. S druge strane, vektorske baze podataka pružaju
+specijalizovano rješenje za ove izazove~\cite{ma2026comprehensive}.
+
+\emph{Vektorske baze podataka} su alati specifično dizajnirani za efikasno
+pohranjivanje i upravljanje visokodimenzionalnim vektorima. Konkretno, u ovim
+bazama se informacije pohranjuju kao visokodimenzionalni vektori koji
+predstavljaju matematičke reprezentacije karakteristika ili atributa podataka.
+U zavisnosti od složenosti i granularnosti osnovnih podataka, dimenzije ovih
+visokodimenzionalnih vektora se obično kreću od nekoliko desetina do nekoliko
+hiljada. Za razliku od tradicionalnih relacionih baza podataka, u vektorskim
+bazama podataka pruženi su efikasni mehanizmi za masovno pohranjivanje,
+upravljanje i pretraživanje visokodimenzionalnih vektora. Ovim mehanizmima se
+donose različite efikasne funkcije poput podržavanja semantičke pretrage
+sličnosti, efikasnog upravljanja masovnim podacima i pružanja odgovora sa
+niskim kašnjenjem. Zbog ovih funkcija se vektorske baze podataka sve više
+integrišu u aplikacije zasnovane na vještačkoj inteligenciji. Dvije osnovne
+funkcije ovih baza podataka jesu pohranjivanje vektora i pretraživanje vektora.
+Funkcija pohranjivanja vektora se oslanja na tehnike poput kvantizacije,
+kompresije i mehanizama distribuiranog pohranjivanja kako bi se poboljšale
+efikasnost i skalabilnost. Funkcija pretraživanja se oslanja na specijalizovane
+tehnike indeksiranja uključujući metode zasnovane na stablu, metode heširanja,
+modele zasnovane na grafovima i tehnike zasnovane na kvantizaciji. Ovim
+tehnikama indeksiranja se optimizuje visokodimenzionalna pretraga sličnosti
+smanjenjem računarskih troškova i poboljšanjem performansi pretraživanja. Pored
+toga, hardverskim ubrzanjem i \foreignlanguage{english}{\emph{cloud}} tehnologijama
+dodatno su unaprijeđene mogućnosti vektorskih baza podataka, što ih čini pogodnim za
+aplikacije u realnom vremenu i aplikacije velikih razmjera.
+Kao posljedica toga, kroz vektorske baze podataka se nude tri ključne prednosti
+u odnosu na tradicionalne baze podataka. Prva prednost podrazumijeva da se putem
+vektorskih baza podataka vektori mogu pretraživati tačno i efikasno. Primarna
+svrha ovih baza jeste pretraživanje relevantnih vektora na osnovu sličnosti
+odnosno udaljenosti vektora, a ova funkcija se takođe nalazi u srcu aplikacija
+kao što su sistemi za preporuke, računarski vid i obrada prirodnog jezika.
+Nasuprot tome, u tradicionalnim bazama podataka podaci se mogu upitovati samo
+na osnovu tačnog podudaranja ili unaprijed definisanih uslova, a ova vrsta
+metode upita je relativno spora i često se ne uzimaju u obzir semantičke
+informacije samih podataka. Druga prednost označava da se vektorske baze podataka
+mogu koristiti za pohranjivanje i nalaženje složenih i nestrukturiranih
+podataka. Tekst, slike, zvuk, video i druge vrste podataka mogu se pohraniti i
+pretraživati sa velikom granularnošću i složenošću upotrebom ovih baza.
+Međutim, u tradicionalnim bazama podataka, kao što su relacione baze podataka,
+teško se kvalitetno pohranjuje ova vrsta informacija o podacima. Treća prednost
+ukazuje na to da su vektorske baze podataka veoma skalabilne i da posjeduju
+mogućnosti obrade podataka u realnom vremenu. Za tradicionalne baze podataka
+je teško da efikasno rukuju velikim količinama skupova podataka u realnom
+vremenu i nestrukturiranim podacima~\cite{ma2026comprehensive}.
+
+\noindent Na slici \ref{fig:vector_database} je prikazana ilustracija tehnika vezanih
+uz vektorske baze podataka.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../images/vector_overview.pdf}
+    \caption{Ilustracija vektorske baze podataka~\cite{ma2026comprehensive}.}
+    \label{fig:vector_database}
+\end{figure}
+
+
+\subsection{Koncept embeddinga}
+\label{sec:embedding}
+
+\foreignlanguage{english}{\emph{Word embeddings}} predstavljaju gusto distribuirane
+vektorske reprezentacije fiksne dužine za riječi i tokene, izgrađene na osnovu statistika
+zajedničkog pojavljivanja riječi u skladu s distribucijskom hipotezom, koja tvrdi da
+\emph{riječi koje se pojavljuju u sličnim kontekstima imaju slično značenje}.
+Formalno, vektorski prostor modela
+(engl.\ \foreignlanguage{english}{\emph{Vector Space Model}}) omogućava
+kodiranje dokumenata i riječi kao vektora nad kojima su definirane operacije
+poput sabiranja, oduzimanja i računanja mjera udaljenosti.
+Osnova za razumijevanje embeddingsa leži u statističkom modeliranju jezika.
+Statistički jezički modeli su probabilistički modeli distribucije riječi u
+jeziku koji se mogu koristiti za izračunavanje vjerovatnoće sljedeće riječi
+uzimajući u obzir prethodne riječi. Matematički,
+n-gramski model s kontekstualnim prozorom veličine $T$ formuliše se kao:
+
+\begin{equation}
+    P(w_1^T) = \prod_{t=1}^{T} P(w_t \mid w_1^{t-1}),
+    \label{eq:ngram}
+\end{equation}
+
+\noindent gdje $w_t$ označava $t$-tu riječ u sekvenci, a $w_i^T$ označava
+sekvencu riječi od $w_i$ do $w_T$. Predikcija sljedeće riječi vrši se
+metodom maksimalne vjerovatnoće
+(engl.\ \foreignlanguage{english}{\emph{maximum likelihood estimation}})
+nad svim riječima u vokabularu~\cite{almeida2019word}.
+
+Konkretan mehanizam pretvaranja riječi u vektor zasniva se na tzv.\
+\foreignlanguage{english}{\emph{1-of-V kodiranju}}
+(engl.\ \foreignlanguage{english}{\emph{one-hot encoding}}), gdje je svaka
+riječ iz vokabulara veličine $V$ reprezentirana binarnim vektorom
+$\mathbf{x} \in \{0,1\}^V$ u kojem je samo jedna komponenta jednaka $1$,
+a sve ostale su $0$. Ovaj ulazni vektor se potom preslikava kroz
+\foreignlanguage{english}{\emph{embedding sloj}}
+množenjem sa matricom težina $W \in \mathbb{R}^{V \times D}$:
+
+\begin{equation}
+    \mathbf{e} = W^\top \mathbf{x},
+    \label{eq:embedding_lookup}
+\end{equation}
+
+\noindent gdje $D$ označava dimenzionalnost embeddings prostora, a rezultat
+$\mathbf{e} \in \mathbb{R}^D$ je gust vektorski prikaz te riječi.
+Budući da je $\mathbf{x}$ one-hot vektor, ova operacija efektivno izvlači
+jedan red iz matrice $W$, što je računarski veoma efikasno.
+Matrica $W$ se uči tokom treninga neuronske mreže i njeni redovi
+nakon treninga predstavljaju naučene embeddings za svaku riječ~\cite{mikolov2013efficient}.
+
+Metode za dobijanje embeddingsa dijele se u dvije kategorije:
+\emph{prediction-based} modeli koriste lokalne podatke i kontekst riječi
+oslanjajući se na neuronske mreže, dok \emph{count-based} modeli
+koriste globalne statistike zajedničkog pojavljivanja u cijelom korpusu,
+tipično reprezentirane kao matrice konteksta~\cite{almeida2019word}.
+Najuticajniji primjer prediction-based pristupa jesu modeli
+\foreignlanguage{english}{\emph{Continuous Bag-of-Words}} (CBOW) i
+\foreignlanguage{english}{\emph{Skip-gram}} (SG), poznati pod nazivom
+\foreignlanguage{english}{Word2Vec}, gdje CBOW predviđa ciljnu riječ
+na osnovu konteksta, a SG predviđa kontekstualne riječi na osnovu
+ciljne riječi~\cite{mikolov2013efficient}. S druge strane, model
+\foreignlanguage{english}{GloVe} kao
+count-based pristup eksploatiše uvid da \emph{omjeri} zajedničkog
+pojavljivanja, a ne sirovi brojevi, nose semantičku informaciju o
+paru riječi~\cite{pennington2014glove}.
+
+Nakon generisanja embeddingsa, sličnost između dva vektora $\mathbf{u},
+\mathbf{v} \in \mathbb{R}^d$ mjeri se kosinusnom sličnošću:
+
+\begin{equation}
+    \cos(\mathbf{u}, \mathbf{v}) =
+    \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\| \cdot \|\mathbf{v}\|}
+    = \frac{\sum_{i=1}^{d} u_i v_i}
+           {\sqrt{\sum_{i=1}^{d} u_i^2} \cdot \sqrt{\sum_{i=1}^{d} v_i^2}},
+    \label{eq:cosine}
+\end{equation}
+
+\noindent gdje vrijednost bliska $1$ ukazuje na visoku semantičku sličnost, a
+vrijednost bliska $0$ ili $-1$ na malu, odnosno suprotnu semantiku. Ova mjera
+temelj je pretraživanja u vektorskim bazama podataka opisanim u sekciji
+\ref{sec:vector_databases}~\cite{ma2026comprehensive}.
+
+\subsection{Vektorsko indeksiranje}
+\label{sec:vektorsko_indeksiranje}
+
+Efikasno pretraživanje u vektorskim bazama podataka zasniva se na tehnikama
+\foreignlanguage{english}{\emph{approximate nearest neighbor}} (ANN) pretrage,
+kojima se pronalazi skup vektora najbližih upitnom vektoru bez iscrpnog
+pretraživanja cijelog skupa podataka. Formalno,
+za dati upit $\mathbf{q} \in \mathbb{R}^d$ i skup vektora
+$\mathcal{X} = \{\mathbf{x}_1, \dots, \mathbf{x}_n\} \subset \mathbb{R}^d$,
+cilj je pronaći:
+
+\begin{equation}
+    \mathbf{x}^* = \arg\min_{\mathbf{x} \in \mathcal{X}}
+    \, d(\mathbf{q},\, \mathbf{x}),
+    \label{eq:ann}
+\end{equation}
+
+\noindent gdje $d(\cdot,\cdot)$ označava mjeru udaljenosti, najčešće
+euklidsku ili kosinusnu. Dvije najšire primjenjivane indeksne strukture
+u praksi su HNSW i IVF~\cite{ma2026comprehensive}.
+
+\foreignlanguage{english}{\emph{Hierarchical Navigable Small World}} (HNSW)
+je grafski indeks koji gradi višeslojnu hijerarhijsku strukturu grafova
+blizine nad pohranijenim vektorima. Sloj $0$
+sadrži sve vektore s gustim lokalnim vezama, dok svaki viši sloj sadrži
+progresivno manji podskup vektora i služi kao brza navigacijska staza kroz
+prostor. Pri umetanju novog elementa, maksimalni sloj $l$ na koji element
+dospijeva bira se nasumično prema eksponencijalno opadajućoj
+distribuciji:
+
+\begin{equation}
+    l = \left\lfloor -\ln\!\bigl(\mathrm{Uniform}(0,1)\bigr)
+        \cdot m_L \right\rfloor,
+    \label{eq:hnsw_layer}
+\end{equation}
+
+\noindent gdje je $m_L = 1/\ln(M)$ faktor normalizacije, a $M$
+hiperparametar koji određuje maksimalni broj bidirekcionalnih veza
+po čvoru. Ovaj mehanizam osigurava da viši slojevi sadrže eksponencijalno
+manji broj elemenata, analogno probabilističkim skip-listama.
+Pretraga se provodi pohlepnom navigacijom od vrha hijerarhije prema
+dnu. Na svakom sloju $l_c$ algoritam se kreće
+prema susjedu koji minimizira udaljenost do upita:
+
+\begin{equation}
+    \mathbf{v}^* = \arg\min_{\mathbf{v}\,\in\,\mathcal{N}_{l_c}(\mathbf{u})}
+    d(\mathbf{q},\,\mathbf{v}),
+    \label{eq:hnsw_search}
+\end{equation}
+
+\noindent gdje $\mathcal{N}_{l_c}(\mathbf{u})$ označava skup susjeda čvora
+$\mathbf{u}$ na sloju $l_c$. Pronađeni lokalni minimum postaje ulazna tačka
+za sljedeći niži sloj, dok se na sloju $0$ provodi detaljna pretraga nad
+skupom kandidata veličine $ef_{\mathrm{search}}$. Separacija veza po
+karakterističnim skalama udaljenosti omogućava ukupnu složenost pretrage
+$\mathcal{O}(\log n)$~\cite{malkov2018efficient}.
+
+\noindent Na slici~\ref{fig:hnsw} prikazana je hijerarhijska struktura HNSW
+indeksa preuzeta iz originalnog rada.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../images/HNSW.pdf}
+    \caption{Višeslojna struktura HNSW indeksa: sloj $0$ sadrži sve vektore,
+    a viši slojevi progresivno manji podskup koji omogućava brzu globalnu
+    navigaciju~\cite{malkov2018efficient}.}
+    \label{fig:hnsw}
+\end{figure}
+
+\foreignlanguage{english}{\emph{Inverted File Index}} (IVF) dijeli vektorski
+prostor na $K$ klastera algoritmom k-means, a svaki vektor pohranjuje u
+\emph{posting listu} odgovarajućeg klastera.
+Kvantizacijska funkcija $q: \mathbb{R}^d \to \{c_1, \dots, c_K\}$ preslikava
+svaki vektor u najbliži centroid:
+
+\begin{equation}
+    q(\mathbf{x}) = \arg\min_{i \in \{1,\dots,K\}}
+    \|\mathbf{x} - \mathbf{c}_i\|_2,
+    \label{eq:ivf_assign}
+\end{equation}
+
+\noindent čime se prostor dijeli na Voronoi ćelije
+$\mathcal{V}_i = \{\mathbf{x} : q(\mathbf{x}) = \mathbf{c}_i\}$.
+Kvalitet particije mjeri se srednjom kvadratnom greškom
+rekonstrukcije:
+
+\begin{equation}
+    \mathrm{MSE}(q) \approx \frac{1}{n} \sum_{i=1}^{n}
+    \|\mathbf{x}_i - q(\mathbf{x}_i)\|^2.
+    \label{eq:ivf_mse}
+\end{equation}
+
+\noindent Za upit $\mathbf{q}$ pronalazi se $n_{\mathrm{probe}}$ najbližih
+centroida, a pretraga se vrši isključivo unutar njihovih posting lista.
+Time se broj usporedbi smanjuje s $\mathcal{O}(n)$ na
+$\mathcal{O}(n \cdot n_{\mathrm{probe}} / K)$, gdje parametar
+$n_{\mathrm{probe}}$ direktno reguliše kompromis između brzine i tačnosti
+pretrage~\cite{jegou2011product}.
+
+Pored navedenih pristupa, vrijedi istaknuti postojanje
+\foreignlanguage{english}{\emph{ScaNN}} i \foreignlanguage{english}{\emph{DiskANN}}
+vektorskih indeksa koji nisu obuhvaćeni ovim radom.
+
+
+\subsection{Vektorska kvantizacija}
+\label{sec:vektorska_kvantizacija}
+
+Pohrana visokodimenzionalnih vektora u punoj preciznosti postaje
+nepraktična pri milijardama embeddings zapisa. Jedan
+\foreignlanguage{english}{float32} vektor od $768$ dimenzija zauzima
+oko $3$\,KB memorije, što za milijardu vektora iznosi više od $3$\,TB,
+daleko iznad kapaciteta standardnog hardvera.
+Vektorska kvantizacija rješava ovaj problem preslikavanjem kontinualnih
+vrijednosti u diskretne reprezentacije, čime se smanjuje memorijski otisak
+uz prihvatljiv gubitak u tačnosti pretrage~\cite{raja2026memory}.
+
+\emph{Skalarna kvantizacija}
+(engl.\ \foreignlanguage{english}{\emph{Scalar Quantization}}, SQ)
+reducira preciznost svake dimenzije vektora nezavisno, preslikavanjem
+kontinualne vrijednosti na $2^b$ diskretnih nivoa, gdje je $b$ broj
+bitova po dimenziji. Za vektor
+$\mathbf{x} = [x_1, x_2, \dots, x_d] \in \mathbb{R}^d$,
+kvantizacijska funkcija za $i$-tu dimenziju definira se kao:
+
+\begin{equation}
+    Q_i(x_i) = \mathrm{round}\!\left(\frac{x_i - \mu_i}{\Delta_i}\right),
+    \label{eq:sq}
+\end{equation}
+
+\noindent gdje je $\mu_i$ ofset specifičan za dimenziju (npr.\ minimum ili
+srednja vrijednost), a $\Delta_i$ veličina kvantizacijskog koraka:
+
+\begin{equation}
+    \Delta_i = \frac{\max(x_i) - \min(x_i)}{2^b - 1}.
+    \label{eq:sq_step}
+\end{equation}
+
+\noindent Kvantizovana vrijednost pohranjuje se kao cjelobrojni indeks,
+a aproksimativna rekonstrukcija komponente vrši se kao
+$\hat{x}_i = Q_i(x_i) \cdot \Delta_i + \mu_i$.
+Ukupna memorija po vektoru iznosi $d \cdot b$ bita, što pri $b = 8$
+(engl.\ \foreignlanguage{english}{\emph{int8}}) smanjuje
+pohranjivanje četvorostruko u odnosu na \foreignlanguage{english}{float32}~\cite{raja2026memory}.
+
+\emph{Binarna kvantizacija}
+(engl.\ \foreignlanguage{english}{\emph{Binary Quantization}}, BQ)
+predstavlja ekstreman slučaj skalarne kvantizacije s $b = 1$,
+gdje se svaka dimenzija vektora preslikava na jedan bit prema
+funkciji predznaka:
+
+\begin{equation}
+    b_i(x_i) = \begin{cases} 1, & x_i \geq \mu_i \\ 0, & x_i < \mu_i \end{cases},
+    \label{eq:bq}
+\end{equation}
+
+\noindent čime se vektor $\mathbf{x} \in \mathbb{R}^d$ kompresuje u
+binarni niz $\mathbf{b} \in \{0,1\}^d$.
+Sličnost između dva binarna vektora efikasno se računa
+\foreignlanguage{english}{\emph{Hamming}} udaljenošću:
+
+\begin{equation}
+    d_H(\mathbf{b}, \mathbf{b}') =
+    \sum_{i=1}^{d} \mathbf{b}_i \oplus \mathbf{b}'_i,
+    \label{eq:hamming}
+\end{equation}
+
+\noindent gdje $\oplus$ označava operaciju ekskluzivnog ili (XOR).
+Binarna kvantizacija postiže kompresiju $32\times$ u odnosu na
+\foreignlanguage{english}{float32}, a XOR operacije nad binarnim
+kodovima podržane su hardverski na savremenim procesorima, što
+rezultira dramatičnim ubrzanjem pretrage~\cite{ma2026comprehensive}.
+
+\emph{Produktna kvantizacija}
+(engl.\ \foreignlanguage{english}{\emph{Product Quantization}}, PQ)
+dekompozicijom vektorskog prostora na Kartezijanski produkt
+niskodimenzijalnih potprostora postiže znatno bolju
+rekonstrukcijsku tačnost od skalarne i binarne kvantizacije.
+Vektor $\mathbf{x} \in \mathbb{R}^d$ dijeli se na $m$ disjunktnih
+pod-vektora:
+
+\begin{equation}
+    \mathbf{x} = \bigl[\mathbf{x}^{(1)},\, \mathbf{x}^{(2)},\,
+    \dots,\, \mathbf{x}^{(m)}\bigr],
+    \quad \mathbf{x}^{(i)} \in \mathbb{R}^{d/m}.
+    \label{eq:pq_split}
+\end{equation}
+
+\noindent Svaki pod-vektor $\mathbf{x}^{(i)}$ kvantizuje se nezavisno
+korištenjem zasebnog \foreignlanguage{english}{\emph{codebook}} mehanizma
+$\mathcal{C}^{(i)} = \{c_1^{(i)}, c_2^{(i)}, \dots, c_k^{(i)}\}$
+s $k$ centroida. Kompresovani vektor pohranjuje se kao $m$-torka indeksa
+centroida $\hat{\mathbf{x}} = [q^{(1)}(\mathbf{x}^{(1)}), \dots,
+q^{(m)}(\mathbf{x}^{(m)})]$, zauzimajući svega $m \log_2 k$ bita,
+a udaljenost između upitnog vektora $\mathbf{q}$ i kompresovanog
+vektora aproksimira se iz unaprijed izračunatih tablica udaljenosti:
+
+\begin{equation}
+    \|\mathbf{q} - \hat{\mathbf{x}}\|_2^2 \approx
+    \sum_{i=1}^{m}
+    \left\|\mathbf{q}^{(i)} -
+    \mathbf{c}^{(i)}_{q^{(i)}(\mathbf{x}^{(i)})}\right\|_2^2.
+    \label{eq:pq_dist}
+\end{equation}
+
+\noindent Komparativni pregled sva tri pristupa prikazan je u
+tabeli~\ref{tab:quant_comparison}~\cite{raja2026memory}.
+
+\begin{table}[htbp]
+\centering
+\caption{Poređenje tehnika vektorske kvantizacije za $768$-dimenzionalni
+\foreignlanguage{english}{float32} vektor~\cite{raja2026memory}.}
+\label{tab:quant_comparison}
+\begin{tabular}{lccc}
+\hline
+\textbf{Tehnika} & \textbf{Memorija (bytes)} &
+\textbf{Recall@10} & \textbf{Latencija (ms)} \\
+\hline
+Float32 (baseline)              & 3072 & 1.00        & 3.5 \\
+Skalarna kvant.\ (8-bit)        & 768  & 0.88--0.91  & 0.9 \\
+Skalarna kvant.\ (4-bit)        & 384  & 0.83--0.86  & 0.8 \\
+Produktna kvant.\ (8$\times$8-bit) & 128 & 0.93--0.95 & 1.1 \\
+\hline
+\end{tabular}
+\end{table}

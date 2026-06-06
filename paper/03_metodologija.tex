@@ -1,2 +1,164 @@
 \section{Metodologija}
 \label{sec:metodologija}
+
+Istraživanje je eksperimentalno-kvantitativnog tipa. Provodi se empirijska
+evaluacija četiri konfiguracije vektorskih indeksa nad istim skupom podataka,
+uz precizno mjerenje latencije upita, tačnosti pretrage i memorijskog
+opterećenja po konfiguraciji. Poglavlje opisuje eksperimentalno okruženje
+i skup podataka, postupak generisanja vektorskih reprezentacija, izgradnju
+indeksnih struktura te protokol mjerenja i statističke obrade rezultata.
+
+\subsection{Eksperimentalno okruženje i skup podataka}
+\label{sec:okruzenje_podaci}
+
+Svi eksperimenti provode se na prijenosnom računaru Lenovo Legion 5 16IRX9
+opremljenom procesorom Intel Core i7-14650HX s 16 jezgara i maksimalnom
+taktnom frekvencijom od $5{,}2$\,GHz, $32$\,GB radne memorije i NVMe SSD
+pogonom kapaciteta $953{,}87$\,GB. Za akceleraciju enkodiranja dostupna je
+grafička kartica NVIDIA GeForce RTX 4070 Laptop GPU. Operativni sistem je
+Ubuntu 24.04.4 LTS s jezgrom verzije 6.17.0.
+
+Eksperiment se izvodi u programskom jeziku Python. Koriste se sljedeće
+biblioteke i servisi: \foreignlanguage{english}{Qdrant} kao vektorska baza
+podataka pokrenuta unutar \foreignlanguage{english}{Docker} kontejnera,
+\foreignlanguage{english}{FAISS} kao biblioteka za aproksimativnu pretragu
+vektora, \foreignlanguage{english}{sentence-transformers} za generisanje
+vektorskih reprezentacija, \foreignlanguage{english}{datasets} za učitavanje
+skupa podataka, te \foreignlanguage{english}{NumPy}, \foreignlanguage{english}{SciPy},
+\foreignlanguage{english}{pandas} i \foreignlanguage{english}{Matplotlib}
+za numeričku obradu, statističku analizu i vizualizaciju rezultata.
+
+Kao skup podataka koristi se \foreignlanguage{english}{MS MARCO v2.1}
+(\foreignlanguage{english}{Microsoft MAchine Reading COmprehension}),
+standardni benchmark za zadatke pretraživanja informacija koji sadrži upite
+u prirodnom jeziku i odgovarajuće pasuse iz stvarnih web
+dokumenata~\cite{msmarco2016}. Svaki primjer u skupu podataka sadrži polje
+\emph{query} s upitom u prirodnom jeziku te polje \emph{passages} koje
+obuhvata skup pasusa, od kojih je svaki opisan tekstualnim sadržajem
+(\emph{passage\_text}) i oznakom relevantnosti (\emph{is\_selected}).
+
+Iz train dijela skupa podataka, koji broji oko $809{.}000$ primjera,
+ekstrahuju se svi pasusi koji čine korpus za indeksiranje. Iz validation
+dijela, koji sadrži oko $101{.}000$ primjera, nasumično se odabira $1{.}000$
+upita koji se koriste za sva mjerenja. Odabir se vrši uz fiksiran generator
+slučajnih brojeva radi reproducibilnosti eksperimenta. Isti skup od $1{.}000$
+upita primjenjuje se na sve četiri konfiguracije indeksa, što je ključan
+uvjet za statističku valjanost poređenja.
+
+\subsection{Generisanje vektorskih reprezentacija}
+\label{sec:embeddings}
+
+Pasusi i upiti prevode se u numeričke vektore korištenjem modela
+\foreignlanguage{english}{\emph{all-mpnet-base-v2}},
+koji generira $768$-dimenzionalne vektore optimizirane za mjerenje semantičke
+sličnosti između rečenica. Model se primjenjuje odvojeno na korpus pasusa
+i skup upita.
+
+Enkodiranje se provodi u serijama od $128$ tekstova istovremeno. Veličina
+serije određuje koliko se tekstova obrađuje paralelno, što direktno utiče
+na brzinu enkodiranja i iskoristivost memorije grafičke kartice, a vrijednost
+$128$ predstavlja kompromis između ta dva faktora koji je primjeren raspoloživom
+hardveru.
+
+Dobijeni vektori normalizuju se L2 normalizacijom, kojom se svaki vektor
+dijeli sa svojom euklidskom normom tako da rezultujući vektor leži na
+jediničnoj sferi. Ovim postupkom euklidska udaljenost i kosinusna sličnost
+postaju ekvivalentne mjere rangiranja~\cite{manning2008introduction}, što
+omogućava konzistentnu upotrebu \foreignlanguage{english}{FAISS} indeksa
+zasnovanog na euklidskoj udaljenosti i \foreignlanguage{english}{Qdrant}
+servisa koji koristi kosinusnu sličnost. Ispravnost normalizacije verifikuje
+se numeričkom provjerom normi vektora. Generirani vektori pohranjuju se na
+disk u binarnom formatu radi ponovnog korištenja u svim eksperimentima.
+
+\subsection{Izgradnja indeksnih struktura}
+\label{sec:indeksi}
+
+Testiraju se četiri konfiguracije indeksa podijeljene između dva alata.
+\foreignlanguage{english}{Flat}, \foreignlanguage{english}{IVF} i
+\foreignlanguage{english}{IVF-PQ} indeksi grade se unutar
+\foreignlanguage{english}{FAISS} biblioteke, koja
+radi direktno u memoriji procesa putem C++ vezanja s minimalnim sistemskim
+troškom. \foreignlanguage{english}{HNSW} indeks gradi se unutar
+\foreignlanguage{english}{Qdrant} servisa koji radi kao produkcijski
+mikroservis s mrežnim interfejsom (\foreignlanguage{english}{HTTP} i
+\foreignlanguage{english}{gRPC}). Ovakva podjela osigurava da svaki indeks
+bude testiran u tehnološkom okruženju za koje je optimiziran, što rezultatima
+daje praktičnu relevantnost.
+
+Budući da \foreignlanguage{english}{Qdrant} kao mikroservis unosi dodatni
+trošak mrežne komunikacije i serijalizacije podataka koji nije prisutan u
+\foreignlanguage{english}{FAISS} okruženju, pri svakom eksperimentu mjeri
+se i prosječna latencija praznog upita prema \foreignlanguage{english}{Qdrant}
+servisu, odnosno latencija samog mrežnog povratnog puta bez stvarne pretrage.
+Ta vrijednost bilježi se i oduzima od izmjerenih \foreignlanguage{english}{HNSW}
+latencija pri apsolutnom poređenju s \foreignlanguage{english}{FAISS}
+konfiguracijama, čime se osigurava da se uspoređuju algoritamske performanse,
+a ne arhitekturalni overhead.
+
+\emph{\foreignlanguage{english}{Flat} indeks} provodi iscrpnu pretragu
+poređenjem upita sa svakim vektorom u korpusu i garantuje potpunu tačnost.
+Služi kao gornja granica za tačnost i donja granica za brzinu te kao referentni
+rezultat (\foreignlanguage{english}{\emph{ground truth}}) za računanje tačnosti
+preostalih konfiguracija.
+
+\emph{\foreignlanguage{english}{IVF} indeks}
+(\foreignlanguage{english}{Inverted File Index}) dijeli vektorski prostor
+na $n_{\mathrm{list}}$ klastera algoritmom k-means. Pretraga se ograničava
+na $n_{\mathrm{probe}}$ najbližih klastera, čime se smanjuje broj poređenja.
+Viša vrijednost $n_{\mathrm{probe}}$ povećava tačnost ali i latenciju, što
+daje kontinuirani kompromis između ta dva faktora. Izgradnja indeksa zahtijeva
+fazu treniranja k-means algoritmom nad podskupom korpusa.
+
+\emph{\foreignlanguage{english}{IVF-PQ} indeks} kombinuje
+\foreignlanguage{english}{IVF} klasterizaciju s
+\foreignlanguage{english}{Product Quantization} kompresijom vektora opisanom
+u sekciji~\ref{sec:vektorska_kvantizacija}. Kompresija drastično smanjuje
+memorijski otisak indeksa na račun aproksimativnosti pri računanju udaljenosti.
+
+\emph{\foreignlanguage{english}{HNSW} indeks} gradi
+višeslojnu grafovsku strukturu opisanu u
+sekciji~\ref{sec:vektorsko_indeksiranje}.
+Parametar $M$ određuje maksimalni broj bidirekcionalnih veza koje svaki
+čvor održava u grafu, dok parametar $ef\_\mathrm{construct}$ određuje
+koliko kandidata za susjede algoritam razmatra pri izgradnji svake veze, viša
+vrijednost $ef\_\mathrm{construct}$ daje precizniji graf uz sporiji
+proces izgradnje indeksa. Pri pretrazi, parametar $ef\_\mathrm{search}$
+kontroliše koliko kandidata se prati kroz graf, čime se reguliše kompromis
+između tačnosti i latencije upita.
+
+\subsection{Mjerenje, metrike i statistička analiza}
+\label{sec:mjerenje_statistika}
+
+Za svaku od četiri konfiguracije indeksa provodi se $1{.}000$ upita,
+pri čemu se svaki upit ponavlja $5$ puta, što daje ukupno $5{.}000$
+mjerenja latencije po konfiguraciji. Latencija se mjeri za svaki upit
+pojedinačno korištenjem preciznog sistemskog mjerača vremena, a rezultati
+se pohranjuju za kasniju obradu. Rezultati prvog ponavljanja koriste se
+za računanje tačnosti pretrage, a svih pet ponavljanja za analizu latencije.
+
+Svaka konfiguracija evaluira se prema trima mjernim metrikama.
+\emph{Latencija upita} mjeri se u milisekundama za svaki upit. Iz $5{.}000$
+mjerenja po konfiguraciji izračunava se srednja vrijednost i $95.$ percentil
+($P_{95}$), koji predstavlja latenciju u najlošijih $5\%$ slučajeva i
+relevantan je za procjenu ponašanja sistema u uvjetima opterećenja.
+\emph{\foreignlanguage{english}{Recall@10}} mjeri koji udio od $10$ rezultata
+koje je aproksimativni indeks vratio odgovara $10$ rezultata
+\foreignlanguage{english}{Flat} indeksa uzetog kao referenca. Vrijednost
+bliska $1{,}0$ znači da aproksimativna metoda pronalazi gotovo iste rezultate
+kao i iscrpna pretraga. \emph{Memorijski otisak} mjeri se kao veličina
+serijaliziranog indeksa na disku u megabajtima.
+
+Za svaku od četiri konfiguracije računaju se deskriptivni statistički
+pokazatelji latencija: srednja vrijednost, medijana, standardna devijacija,
+minimum, maksimum te $P_{95}$ i $P_{99}$ percentili. Za provjeru statističke
+značajnosti razlika između latencija dviju konfiguracija primjenjuje se
+Wilcoxon \foreignlanguage{english}{\emph{signed-rank}} test~\cite{demsar2006},
+neparametrijski test koji ne pretpostavlja normalnu distribuciju podataka
+i prikladan je za distribucije latencija koje su tipično asimetrične s dugim
+desnim repom. Svaka od tri hipoteze testira se na razini značajnosti
+$p < 0{,}05$. Pored statističkih testova, za svaki indeks konstruišu se
+krivulje kompromisa između tačnosti i latencije variranjem parametra pretrage
+($n_{\mathrm{probe}}$ za \foreignlanguage{english}{IVF} i
+\foreignlanguage{english}{IVF-PQ}, $ef\_\mathrm{search}$ za
+\foreignlanguage{english}{HNSW}), čime se vizualizira raspon mogućih
+kompromisa dostupnih za svaki indeks.
