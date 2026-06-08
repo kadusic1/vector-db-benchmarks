@@ -30,6 +30,15 @@ from src.logger import logger
 def _save_parquet(
     texts: list[str], embeddings, path: str, name: str, id_offset: int = 0
 ) -> None:
+    """Save text-embedding pairs as a Parquet file on disk.
+
+    Args:
+        texts: List of passage/query texts.
+        embeddings: 2D NumPy array of embeddings (n_rows x dim).
+        path: Destination file path.
+        name: Human-readable label for logging (e.g. "passages_0").
+        id_offset: Starting value for the auto-incremented id column.
+    """
     dim = embeddings.shape[1]
     features = Features(
         {
@@ -47,11 +56,14 @@ def _save_parquet(
         features=features,
     )
     ds.to_parquet(path)
-    mb = os.path.getsize(path) / 1024**2
-    logger.info(f"  {name}: {len(texts)} redova, {mb:.1f} MB -> {path}")
+    size_mb = os.path.getsize(path) / 1024**2
+    logger.info(f"  {name}: {len(texts)} redova, {size_mb:.1f} MB -> {path}")
 
 
 def main() -> None:
+    """Load MS MARCO passages and queries, compute embeddings,
+    and save them as local Parquet shards.
+    """
     os.makedirs("data", exist_ok=True)
 
     passage_shards = [f"data/passages_{i}.parquet" for i in range(N_SHARDS)]
