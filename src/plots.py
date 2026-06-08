@@ -44,7 +44,7 @@ class PlotGenerator:
         plt.boxplot(data)
         plt.xticks(range(1, len(labels) + 1), labels)
         plt.yscale("log")
-        plt.ylabel("Latency (ms) — log scale")
+        plt.ylabel("Latency (ms) - log scale")
         plt.title("Latency Distribution by Index Configuration")
         plt.grid(True, alpha=0.3, axis="y")
         plt.tight_layout()

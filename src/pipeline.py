@@ -163,7 +163,7 @@ class ExperimentPipeline:
         )
 
         logger.info(
-            f"Recall@10 — IVF: {recall_ivf:.4f}, "
+            f"Recall@10 - IVF: {recall_ivf:.4f}, "
             f"IVF-PQ: {recall_ivfpq:.4f}, "
             f"HNSW: {recall_hnsw:.4f}"
         )

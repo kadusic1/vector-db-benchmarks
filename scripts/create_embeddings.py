@@ -10,9 +10,9 @@ Usage:
     python scripts/create_embeddings.py
 
 Generates:
-    data/passages_0..9.parquet  — passages text + 768-dim embeddings
+    data/passages_0..9.parquet  - passages text + 768-dim embeddings
                                   (50k rows per shard)
-    data/queries.parquet        — queries text + 768-dim embeddings
+    data/queries.parquet        - queries text + 768-dim embeddings
 """
 
 import os
