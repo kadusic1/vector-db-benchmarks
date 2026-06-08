@@ -21,3 +21,4 @@ output/
 # Qdrant persistent storage (Docker creates as root)
 qdrant_data
 *.bak*
+*.log*
