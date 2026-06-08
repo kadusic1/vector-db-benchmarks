@@ -9,16 +9,15 @@ wheels/
 # Virtual environments
 .venv
 
-# Qdrant data directory
-qdrant_data
 literature
-
-results
 
 # Environment variables
 .env
 
-# Generated data, indices, and figures
+# Generated output and data directories
 data/
-artifacts/
-figures/
+output/
+
+# Qdrant persistent storage (Docker creates as root)
+qdrant_data
+*.bak*
