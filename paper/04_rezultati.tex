@@ -23,27 +23,35 @@ distribucija na logaritamskoj skali prikazana je na
 slici~\ref{fig:boxplot_latencija}.
 
 \begin{table}[htbp]
-\centering
-\caption{Deskriptivna statistika latencija pretrage po
-         konfiguraciji indeksa. Sve vrijednosti
-         izražene su u milisekundama.}
-\label{tab:latencija_stat}
-\begin{tabular}{lrrrrr}
-\hline
-\textbf{Konfiguracija} &
-\textbf{Mean} &
-\textbf{Median} &
-\textbf{Std} &
-$\mathbf{P_{95}}$ &
-$\mathbf{P_{99}}$ \\
-\hline
-Flat   & 53{,}22 & 51{,}95 &  6{,}54 &  54{,}89 & 100{,}01 \\
-IVF    &  8{,}67 &  8{,}65 &  0{,}60 &   9{,}61 &  10{,}01 \\
-IVF-PQ &  1{,}12 &  1{,}11 &  0{,}07 &   1{,}24 &   1{,}28 \\
-HNSW   &  6{,}95 &  4{,}28 &  9{,}24 &  44{,}08 &  46{,}85 \\
-\hline
-\end{tabular}
+	\centering
+	\caption{Deskriptivna statistika latencija pretrage po
+		konfiguraciji indeksa. Sve vrijednosti
+		izražene su u milisekundama.}
+	\label{tab:latencija_stat}
+	\begin{tabular}{lrrrrr}
+		\hline
+		\textbf{Konfiguracija} &
+		\textbf{Mean}          &
+		\textbf{Median}        &
+		\textbf{Std}           &
+		$\mathbf{P_{95}}$      &
+		$\mathbf{P_{99}}$                                                        \\
+		\hline
+		Flat                   & 53{,}22 & 51{,}95 & 6{,}54 & 54{,}89 & 100{,}01 \\
+		IVF                    & 8{,}67  & 8{,}65  & 0{,}60 & 9{,}61  & 10{,}01  \\
+		IVF-PQ                 & 1{,}12  & 1{,}11  & 0{,}07 & 1{,}24  & 1{,}28   \\
+		HNSW                   & 6{,}95  & 4{,}28  & 9{,}24 & 44{,}08 & 46{,}85  \\
+		\hline
+	\end{tabular}
+	\vspace{4pt}
 \end{table}
+
+\emph{Napomena:} za HNSW konfiguraciju prikazane su
+sirove (end-to-end) latencije koje uključuju
+mrežni overhead Qdrant servisa od 0{,}68\,ms.
+Pri apsolutnom poređenju s FAISS
+konfiguracijama (sekcija~\ref{sec:h1}), ovaj
+overhead je oduzet na nivou medijane po upitu.
 
 Iz tabele~\ref{tab:latencija_stat} uočava se da
 \foreignlanguage{english}{Flat} indeks postiže
@@ -79,19 +87,12 @@ u skladu s metodologijom opisanom u
 poglavlju~\ref{sec:indeksi}.
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.9\textwidth]{%
-        ../images/boxplot_latency.pdf}
-    \caption{Raspodjela latencija po konfiguraciji
-             indeksa prikazana na logaritamskoj skali.
-             Uočava se izrazito dugi desni rep
-             distribucije za
-             \foreignlanguage{english}{HNSW}
-             konfiguraciju u poređenju s kompaktnim
-             rasporedima
-             \foreignlanguage{english}{IVF} i
-             \foreignlanguage{english}{IVF-PQ}.}
-    \label{fig:boxplot_latencija}
+	\centering
+	\includegraphics[width=0.9\textwidth]{%
+		../images/boxplot_latency.pdf}
+	\caption{Raspodjela latencija po konfiguraciji
+		indeksa prikazana na logaritamskoj skali.}
+	\label{fig:boxplot_latencija}
 \end{figure}
 
 \subsection{Memorijski otisak indeksa}
@@ -119,18 +120,18 @@ i vektorske vrijednosti i veze grafovskog indeksa
 na svakom sloju hijerarhije.
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.9\textwidth]{%
-        ../images/memory_comparison.pdf}
-    \caption{Memorijski otisak indeksa po
-             konfiguraciji u megabajtima.
-             \foreignlanguage{english}{IVF-PQ}
-             postiže kompresijski omjer od
-             $40{,}88\times$ u odnosu na
-             \foreignlanguage{english}{Flat},
-             dok \foreignlanguage{english}{HNSW}
-             premašuje granicu od $2$\,GB.}
-    \label{fig:memorija}
+	\centering
+	\includegraphics[width=0.9\textwidth]{%
+		../images/memory_comparison.pdf}
+	\caption{Memorijski otisak indeksa po
+		konfiguraciji u megabajtima.
+		\foreignlanguage{english}{IVF-PQ}
+		postiže kompresijski omjer od
+		$40{,}88\times$ u odnosu na
+		\foreignlanguage{english}{Flat},
+		dok \foreignlanguage{english}{HNSW}
+		premašuje granicu od $2$\,GB.}
+	\label{fig:memorija}
 \end{figure}
 
 \subsection{Sweep parametara i krivulje kompromisa}
@@ -149,50 +150,50 @@ tabeli~\ref{tab:sweep_rezultati} i vizualizirani
 na slici~\ref{fig:tradeoff}.
 
 \begin{table}[htbp]
-\centering
-\caption{Rezultati parametarskog pregleda za tri
-         aproksimativna indeksa s variranim
-         parametrima pretrage.}
-\label{tab:sweep_rezultati}
-\begin{tabular}{llrr}
-\hline
-\textbf{Indeks} &
-\textbf{Parametar} &
-\textbf{Recall@10} &
-\textbf{Latencija (ms)} \\
-\hline
-IVF &
-$n_{\mathrm{probe}} = 8$   & 0{,}8848 &  2{,}25 \\
-IVF &
-$n_{\mathrm{probe}} = 16$  & 0{,}9307 &  4{,}41 \\
-IVF &
-$n_{\mathrm{probe}} = 32$  & 0{,}9564 &  8{,}62 \\
-IVF &
-$n_{\mathrm{probe}} = 64$  & 0{,}9790 & 17{,}11 \\
-IVF &
-$n_{\mathrm{probe}} = 128$ & 0{,}9945 & 34{,}34 \\
-\hline
-IVF-PQ &
-$n_{\mathrm{probe}} = 8$   & 0{,}6448 & 0{,}31 \\
-IVF-PQ &
-$n_{\mathrm{probe}} = 16$  & 0{,}6611 & 0{,}57 \\
-IVF-PQ &
-$n_{\mathrm{probe}} = 32$  & 0{,}6679 & 1{,}08 \\
-IVF-PQ &
-$n_{\mathrm{probe}} = 64$  & 0{,}6718 & 2{,}11 \\
-IVF-PQ &
-$n_{\mathrm{probe}} = 128$ & 0{,}6741 & 4{,}19 \\
-\hline
-HNSW &
-$ef_{\mathrm{search}} = 50$  & 0{,}9872 & 6{,}12 \\
-HNSW &
-$ef_{\mathrm{search}} = 100$ & 0{,}9943 & 6{,}40 \\
-HNSW &
-$ef_{\mathrm{search}} = 200$ & 0{,}9979 & 7{,}82 \\
-HNSW &
-$ef_{\mathrm{search}} = 400$ & 0{,}9991 & 9{,}03 \\
-\hline
-\end{tabular}
+	\centering
+	\caption{Rezultati parametarskog pregleda za tri
+		aproksimativna indeksa s variranim
+		parametrima pretrage.}
+	\label{tab:sweep_rezultati}
+	\begin{tabular}{llrr}
+		\hline
+		\textbf{Indeks}              &
+		\textbf{Parametar}           &
+		\textbf{Recall@10}           &
+		\textbf{Latencija (ms)}                           \\
+		\hline
+		IVF                          &
+		$n_{\mathrm{probe}} = 8$     & 0{,}8848 & 2{,}25  \\
+		IVF                          &
+		$n_{\mathrm{probe}} = 16$    & 0{,}9307 & 4{,}41  \\
+		IVF                          &
+		$n_{\mathrm{probe}} = 32$    & 0{,}9564 & 8{,}62  \\
+		IVF                          &
+		$n_{\mathrm{probe}} = 64$    & 0{,}9790 & 17{,}11 \\
+		IVF                          &
+		$n_{\mathrm{probe}} = 128$   & 0{,}9945 & 34{,}34 \\
+		\hline
+		IVF-PQ                       &
+		$n_{\mathrm{probe}} = 8$     & 0{,}6448 & 0{,}31  \\
+		IVF-PQ                       &
+		$n_{\mathrm{probe}} = 16$    & 0{,}6611 & 0{,}57  \\
+		IVF-PQ                       &
+		$n_{\mathrm{probe}} = 32$    & 0{,}6679 & 1{,}08  \\
+		IVF-PQ                       &
+		$n_{\mathrm{probe}} = 64$    & 0{,}6718 & 2{,}11  \\
+		IVF-PQ                       &
+		$n_{\mathrm{probe}} = 128$   & 0{,}6741 & 4{,}19  \\
+		\hline
+		HNSW                         &
+		$ef_{\mathrm{search}} = 50$  & 0{,}9872 & 6{,}12  \\
+		HNSW                         &
+		$ef_{\mathrm{search}} = 100$ & 0{,}9943 & 6{,}40  \\
+		HNSW                         &
+		$ef_{\mathrm{search}} = 200$ & 0{,}9979 & 7{,}82  \\
+		HNSW                         &
+		$ef_{\mathrm{search}} = 400$ & 0{,}9991 & 9{,}03  \\
+		\hline
+	\end{tabular}
 \end{table}
 
 Za \foreignlanguage{english}{IVF} indeks uočena je
@@ -240,20 +241,20 @@ efikasno pronalazi gotovo sve relevantne rezultate
 $ef_{\mathrm{search}}$.
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.9\textwidth]{%
-        ../images/tradeoff_curve.pdf}
-    \caption{Krivulje kompromisa između tačnosti i
-             latencije za tri aproksimativna indeksa.
-             \foreignlanguage{english}{HNSW} i
-             \foreignlanguage{english}{IVF} operišu
-             u visokom opsegu tačnosti (iznad $0{,}88$),
-             dok je \foreignlanguage{english}{IVF-PQ}
-             ograničen na
-             \foreignlanguage{english}{recall@10}
-             između $0{,}64$ i $0{,}68$ bez obzira
-             na vrijednost $n_{\mathrm{probe}}$.}
-    \label{fig:tradeoff}
+	\centering
+	\includegraphics[width=0.9\textwidth]{%
+		../images/tradeoff_curve.pdf}
+	\caption{Krivulje kompromisa između tačnosti i
+		latencije za tri aproksimativna indeksa.
+		\foreignlanguage{english}{HNSW} i
+		\foreignlanguage{english}{IVF} operišu
+		u visokom opsegu tačnosti (iznad $0{,}88$),
+		dok je \foreignlanguage{english}{IVF-PQ}
+		ograničen na
+		\foreignlanguage{english}{recall@10}
+		između $0{,}64$ i $0{,}68$ bez obzira
+		na vrijednost $n_{\mathrm{probe}}$.}
+	\label{fig:tradeoff}
 \end{figure}
 
 \subsection{Verifikacija hipoteza}
@@ -266,23 +267,23 @@ tačnosti, latencije i memorijskog otiska prikazan
 je u tabeli~\ref{tab:zbirni_pregled}.
 
 \begin{table}[htbp]
-\centering
-\caption{Zbirni pregled ključnih metrika po
-         konfiguraciji indeksa.}
-\label{tab:zbirni_pregled}
-\begin{tabular}{lrrr}
-\hline
-\textbf{Konfiguracija} &
-\textbf{Recall@10} &
-\textbf{Mean (ms)} &
-\textbf{Memorija (MB)} \\
-\hline
-Flat   & 1{,}0000 & 53{,}22 & 1{.}464{,}8 \\
-IVF    & 0{,}9564 &  8{,}67 & 1{.}469{,}4 \\
-IVF-PQ & 0{,}6679 &  1{,}12 &      35{,}8 \\
-HNSW   & 0{,}9961 &  6{,}95 & 2{.}139{,}1 \\
-\hline
-\end{tabular}
+	\centering
+	\caption{Zbirni pregled ključnih metrika po
+		konfiguraciji indeksa.}
+	\label{tab:zbirni_pregled}
+	\begin{tabular}{lrrr}
+		\hline
+		\textbf{Konfiguracija} &
+		\textbf{Recall@10}     &
+		\textbf{Mean (ms)}     &
+		\textbf{Memorija (MB)}                                    \\
+		\hline
+		Flat                   & 1{,}0000 & 53{,}22 & 1{.}464{,}8 \\
+		IVF                    & 0{,}9564 & 8{,}67  & 1{.}469{,}4 \\
+		IVF-PQ                 & 0{,}6679 & 1{,}12  & 35{,}8      \\
+		HNSW                   & 0{,}9961 & 6{,}95  & 2{.}139{,}1 \\
+		\hline
+	\end{tabular}
 \end{table}
 
 \subsubsection{Hipoteza H1}

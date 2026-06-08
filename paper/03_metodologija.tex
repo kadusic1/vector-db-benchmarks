@@ -19,8 +19,8 @@ grafička kartica NVIDIA GeForce RTX 4070 Laptop GPU. Operativni sistem je
 Ubuntu 24.04.4 LTS s jezgrom verzije 6.17.0.
 
 Eksperiment se izvodi u programskom jeziku Python. Koriste se sljedeće
-biblioteke i servisi: \foreignlanguage{english}{Qdrant} kao vektorska baza
-podataka pokrenuta unutar \foreignlanguage{english}{Docker} kontejnera,
+biblioteke i servisi: \foreignlanguage{english}{Qdrant} vektorska baza
+podataka,
 \foreignlanguage{english}{FAISS} kao biblioteka za aproksimativnu pretragu
 vektora, \foreignlanguage{english}{sentence-transformers} za generisanje
 vektorskih reprezentacija, \foreignlanguage{english}{datasets} za učitavanje
@@ -69,7 +69,7 @@ omogućava konzistentnu upotrebu \foreignlanguage{english}{FAISS} indeksa
 zasnovanog na euklidskoj udaljenosti i \foreignlanguage{english}{Qdrant}
 servisa koji koristi kosinusnu sličnost. Ispravnost normalizacije verifikuje
 se numeričkom provjerom normi vektora. Generirani vektori pohranjuju se na
-disk u \foreignlanguage{english}{Parquet} formatu radi
+disk u \foreignlanguage{english}{\emph{Parquet}} formatu radi
 ponovnog korištenja u svim eksperimentima.
 
 \subsection{Izgradnja indeksnih struktura}
