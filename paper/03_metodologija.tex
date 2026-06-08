@@ -24,8 +24,9 @@ podataka pokrenuta unutar \foreignlanguage{english}{Docker} kontejnera,
 \foreignlanguage{english}{FAISS} kao biblioteka za aproksimativnu pretragu
 vektora, \foreignlanguage{english}{sentence-transformers} za generisanje
 vektorskih reprezentacija, \foreignlanguage{english}{datasets} za učitavanje
-skupa podataka, te \foreignlanguage{english}{NumPy}, \foreignlanguage{english}{SciPy},
-\foreignlanguage{english}{pandas} i \foreignlanguage{english}{Matplotlib}
+skupa podataka, te \foreignlanguage{english}{NumPy},
+\foreignlanguage{english}{SciPy} i
+\foreignlanguage{english}{Matplotlib}
 za numeričku obradu, statističku analizu i vizualizaciju rezultata.
 
 Kao skup podataka koristi se \foreignlanguage{english}{MS MARCO v2.1}
@@ -38,10 +39,10 @@ obuhvata skup pasusa, od kojih je svaki opisan tekstualnim sadržajem
 (\emph{passage\_text}) i oznakom relevantnosti (\emph{is\_selected}).
 
 Iz train dijela skupa podataka, koji broji oko $809{.}000$ primjera,
-ekstrahuju se svi pasusi koji čine korpus za indeksiranje. Iz validation
-dijela, koji sadrži oko $101{.}000$ primjera, nasumično se odabira $1{.}000$
-upita koji se koriste za sva mjerenja. Odabir se vrši uz fiksiran generator
-slučajnih brojeva radi reproducibilnosti eksperimenta. Isti skup od $1{.}000$
+ekstrahuje se $500{.}000$ unikatnih pasusa koji čine korpus za indeksiranje,
+uz prethodno uklanjanje duplikata. Iz validation
+dijela, koji sadrži oko $101{.}000$ primjera, uzima se prvih $1{.}000$
+upita koji se koriste za sva mjerenja. Isti skup od $1{.}000$
 upita primjenjuje se na sve četiri konfiguracije indeksa, što je ključan
 uvjet za statističku valjanost poređenja.
 
@@ -68,7 +69,8 @@ omogućava konzistentnu upotrebu \foreignlanguage{english}{FAISS} indeksa
 zasnovanog na euklidskoj udaljenosti i \foreignlanguage{english}{Qdrant}
 servisa koji koristi kosinusnu sličnost. Ispravnost normalizacije verifikuje
 se numeričkom provjerom normi vektora. Generirani vektori pohranjuju se na
-disk u binarnom formatu radi ponovnog korištenja u svim eksperimentima.
+disk u \foreignlanguage{english}{Parquet} formatu radi
+ponovnog korištenja u svim eksperimentima.
 
 \subsection{Izgradnja indeksnih struktura}
 \label{sec:indeksi}
@@ -88,9 +90,11 @@ daje praktičnu relevantnost.
 Budući da \foreignlanguage{english}{Qdrant} kao mikroservis unosi dodatni
 trošak mrežne komunikacije i serijalizacije podataka koji nije prisutan u
 \foreignlanguage{english}{FAISS} okruženju, pri svakom eksperimentu mjeri
-se i prosječna latencija praznog upita prema \foreignlanguage{english}{Qdrant}
-servisu, odnosno latencija samog mrežnog povratnog puta bez stvarne pretrage.
-Ta vrijednost bilježi se i oduzima od izmjerenih \foreignlanguage{english}{HNSW}
+se medijan latencije $200$ lakih RPC poziva prema
+\foreignlanguage{english}{Qdrant} servisu, odnosno latencija
+samog mrežnog povratnog puta bez stvarne pretrage.
+Ta vrijednost bilježi se i oduzima na nivou medijana latencije po upitu od
+izmjerenih \foreignlanguage{english}{HNSW}
 latencija pri apsolutnom poređenju s \foreignlanguage{english}{FAISS}
 konfiguracijama, čime se osigurava da se uspoređuju algoritamske performanse,
 a ne arhitekturalni overhead.
@@ -100,6 +104,10 @@ poređenjem upita sa svakim vektorom u korpusu i garantuje potpunu tačnost.
 Služi kao gornja granica za tačnost i donja granica za brzinu te kao referentni
 rezultat (\foreignlanguage{english}{\emph{ground truth}}) za računanje tačnosti
 preostalih konfiguracija.
+Budući da se
+\foreignlanguage{english}{Flat} indeks ne serijalizira na
+disk, njegov memorijski otisak računa se teoretski na
+osnovu dimenzije vektora i broja vektora u korpusu.
 
 \emph{\foreignlanguage{english}{IVF} indeks}
 (\foreignlanguage{english}{Inverted File Index}) dijeli vektorski prostor
@@ -107,23 +115,32 @@ na $n_{\mathrm{list}}$ klastera algoritmom k-means. Pretraga se ograničava
 na $n_{\mathrm{probe}}$ najbližih klastera, čime se smanjuje broj poređenja.
 Viša vrijednost $n_{\mathrm{probe}}$ povećava tačnost ali i latenciju, što
 daje kontinuirani kompromis između ta dva faktora. Izgradnja indeksa zahtijeva
-fazu treniranja k-means algoritmom nad podskupom korpusa.
+fazu treniranja k-means algoritmom nad cjelokupnim korpusom
+od 500.000 vektora.
+U eksperimentima je korišteno $n_{\mathrm{list}} = 256$ klastera uz
+podrazumijevanu vrijednost $n_{\mathrm{probe}} = 32$.
 
 \emph{\foreignlanguage{english}{IVF-PQ} indeks} kombinuje
 \foreignlanguage{english}{IVF} klasterizaciju s
 \foreignlanguage{english}{Product Quantization} kompresijom vektora opisanom
 u sekciji~\ref{sec:vektorska_kvantizacija}. Kompresija drastično smanjuje
 memorijski otisak indeksa na račun aproksimativnosti pri računanju udaljenosti.
+Korištena je konfiguracija s $n_{\mathrm{list}} = 256$, $M = 64$
+podvektora i $n_{\mathrm{bits}} = 8$, što daje kompresiju od $64$ bajta
+po vektoru.
 
 \emph{\foreignlanguage{english}{HNSW} indeks} gradi
 višeslojnu grafovsku strukturu opisanu u
 sekciji~\ref{sec:vektorsko_indeksiranje}.
 Parametar $M$ određuje maksimalni broj bidirekcionalnih veza koje svaki
-čvor održava u grafu, dok parametar $ef\_\mathrm{construct}$ određuje
-koliko kandidata za susjede algoritam razmatra pri izgradnji svake veze, viša
+čvor održava u grafu i postavljen je na $M = 16$, dok parametar
+$ef\_\mathrm{construct}$ određuje
+koliko kandidata za susjede algoritam razmatra pri izgradnji svake veze i
+postavljen je na $ef\_\mathrm{construct} = 200$, viša
 vrijednost $ef\_\mathrm{construct}$ daje precizniji graf uz sporiji
 proces izgradnje indeksa. Pri pretrazi, parametar $ef\_\mathrm{search}$
-kontroliše koliko kandidata se prati kroz graf, čime se reguliše kompromis
+kontroliše koliko kandidata se prati kroz graf i podrazumijevana vrijednost
+je $ef\_\mathrm{search} = 128$, čime se reguliše kompromis
 između tačnosti i latencije upita.
 
 \subsection{Mjerenje, metrike i statistička analiza}
@@ -161,4 +178,9 @@ krivulje kompromisa između tačnosti i latencije variranjem parametra pretrage
 ($n_{\mathrm{probe}}$ za \foreignlanguage{english}{IVF} i
 \foreignlanguage{english}{IVF-PQ}, $ef\_\mathrm{search}$ za
 \foreignlanguage{english}{HNSW}), čime se vizualizira raspon mogućih
-kompromisa dostupnih za svaki indeks.
+kompromisa dostupnih za svaki indeks. Sweep je proveden s
+$n_{\mathrm{probe}} \in \{8, 16, 32, 64, 128\}$ za
+\foreignlanguage{english}{IVF} i \foreignlanguage{english}{IVF-PQ},
+odnosno $ef\_\mathrm{search} \in \{50, 100, 200, 400\}$ za
+\foreignlanguage{english}{HNSW}, pri čemu je za svaku vrijednost
+ponovljeno $3$ ponavljanja svih $1{.}000$ upita.
