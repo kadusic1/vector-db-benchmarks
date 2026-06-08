@@ -1,2 +1,121 @@
 \section{Zaključak}
 \label{sec:zakljucak}
+
+Provedena je empirijska evaluacija četiri konfiguracije
+vektorskih indeksa na skupu podataka
+\foreignlanguage{english}{MS MARCO v2.1}, s ciljem
+kvantificiranja kompromisa između latencije upita,
+tačnosti pretrage i memorijskog otiska.
+Eksperimenti su zasnovani na korpusu od $500{.}000$
+pasusa kodiranih u $768$-dimenzionalne vektore
+modelom \foreignlanguage{english}{all-mpnet-base-v2},
+uz $1{.}000$ upita s po pet ponavljanja po
+konfiguraciji.
+Statistička značajnost razlika ispitana je
+Wilcoxon \foreignlanguage{english}{signed-rank}
+testom.
+
+Rezultati otkrivaju da ne postoji univerzalno
+superiorna konfiguracija indeksa, već da svaki
+pristup nudi distinktivan profil performansi koji
+odgovara različitim aplikacijskim zahtjevima.
+Utvrđeno je da \foreignlanguage{english}{Flat}
+indeks, koji garantuje potpunu tačnost pretrage,
+postiže srednju latenciju od $52{,}357$\,ms i
+nepraktičan je za interaktivne primjene pri
+skupovima podataka web-razmjera.
+\foreignlanguage{english}{IVF} indeks ostvaruje
+redukciju srednje latencije od oko $6\times$ uz
+zadržavanje visokog
+\foreignlanguage{english}{recall@10} od $0{,}9564$
+i izuzetno konzistentno ponašanje s niskim
+standardnim odstupanjem od $0{,}609$\,ms, što ga
+čini pogodnim za sisteme s predvidivim vremenskim
+odzivom.
+Pokazano je da
+\foreignlanguage{english}{IVF-PQ} konfiguracija
+postiže najnižu latenciju od svih testiranih
+pristupa i kompresijski omjer od $40{,}88\times$
+u odnosu na \foreignlanguage{english}{Flat} indeks,
+ali uz pad tačnosti od $33{,}21$ procentnih poena
+koji je direktna posljedica agresivnih parametara
+produktne kvantizacije.
+\foreignlanguage{english}{HNSW} indeks pokazuje
+najpovoljniji kompromis između tačnosti i latencije
+od svih aproksimativnih konfiguracija, s medijanom
+latencije od $4{,}451$\,ms i tačnošću od $0{,}9972$,
+ali uz visoke vrijednosti $P_{95} = 44{,}118$\,ms
+i $P_{99} = 47{,}566$\,ms koje su pripisane mrežnom
+i serijalizacijskom overheadu
+\foreignlanguage{english}{Qdrant} mikroservisa.
+
+Hipoteza H1 je potvrđena.
+Wilcoxon testom utvrđena je statistički značajna
+razlika između distribucija latencija
+\foreignlanguage{english}{HNSW} i
+\foreignlanguage{english}{IVF} konfiguracija,
+uz \foreignlanguage{english}{recall@10} od $0{,}9972$
+koji premašuje postavljeni prag od $90\%$.
+Hipoteza H2 je djelimično potvrđena.
+Memorijska kompresija od $40{,}88\times$ premašila
+je zahtijevani prag od $4\times$ s velikom rezervom,
+ali pad tačnosti od $33{,}21$ procentnih poena
+znatno premašuje dozvoljeni prag od $5$ procentnih
+poena, čime drugi uvjet hipoteze H2 nije ispunjen.
+Hipoteza H3 je potvrđena.
+\foreignlanguage{english}{IVF-PQ} je jedina
+razmatrana konfiguracija koja se uklapa u memorijski
+budžet od $2$\,GB, dok
+\foreignlanguage{english}{HNSW} premašuje taj budžet
+za $24{,}0$\,MB.
+
+Sa stanovišta praktičnih preporuka, utvrđeno je da
+izbor konfiguracije treba uskladiti s dominantnim
+aplikacijskim ograničenjem.
+U scenarijima gdje je tačnost pretrage prioritet bez
+strogih memorijskih ograničenja,
+\foreignlanguage{english}{HNSW} ostaje superioran
+izbor zahvaljujući visokoj tačnosti i niskoj medijani
+latencije.
+Za sisteme s čvrstim zahtjevima na latenciju repova
+distribucije ili predvidivim ponašanjem pod
+opterećenjem, \foreignlanguage{english}{IVF} je
+prikladniji usljed niske varijabilnosti.
+U memorijski ograničenim okruženjima s budžetom
+ispod $2$\,GB,
+\foreignlanguage{english}{IVF-PQ} je jedino izvedivo
+rješenje od razmatranih konfiguracija, uz napomenu
+da prilagođavanjem parametara kompresije može biti
+postignut povoljniji balans između memorijskog otiska
+i tačnosti pretrage.
+
+Istraživanje ima i određena ograničenja koja treba
+uzeti u obzir pri interpretaciji rezultata.
+\foreignlanguage{english}{HNSW} indeks testiran je
+unutar \foreignlanguage{english}{Qdrant} mikroservisa
+koji uvodi mrežni overhead odsutan u
+\foreignlanguage{english}{FAISS} okruženju.
+Iako je overhead izmjeren i oduzet na nivou medijane,
+visoka varijabilnost latencije repova distribucije
+može biti djelimično artefakt testnog okruženja, a ne
+isključivo karakteristika samog algoritma.
+Eksperimenti su provedeni na jednom skupu podataka
+i jednom modelu za generisanje embeddingsa, što
+ograničava generalizabilnost dobijenih zaključaka
+na skupove podataka različitih karakteristika.
+
+Buduće istraživanje moglo bi biti usmjereno ka
+evaluaciji \foreignlanguage{english}{HNSW} indeksa
+direktno unutar \foreignlanguage{english}{FAISS}
+okruženja radi eliminisanja arhitekturalnog overheada
+i dobijanja preciznijih algoritmičkih poređenja.
+Preporučuje se i istraživanje uticaja parametara
+produktne kvantizacije poput broja podvektora $M$
+i broja bita $n_{\mathrm{bits}}$ na balans između
+kompresije i tačnosti, s ciljem pronalaženja
+konfiguracije koja zadovoljava sve uvjete hipoteze H2.
+Vrijedi razmotriti i evaluaciju naprednih indeksnih
+struktura poput \foreignlanguage{english}{ScaNN} i
+\foreignlanguage{english}{DiskANN} na istom skupu
+podataka, te poređenje performansi pri različitim
+dimenzionalnostima embeddingsa i veličinama korpusa.
