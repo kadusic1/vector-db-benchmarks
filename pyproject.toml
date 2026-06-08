@@ -11,8 +11,11 @@ dependencies = [
     "matplotlib>=3.10.9",
     "numpy>=2.4.6",
     "qdrant-client>=1.18.0",
-    "ruff>=0.15.16",
     "scipy>=1.17.1",
+]
+
+[project.optional-dependencies]
+generate = [
     "sentence-transformers>=5.5.1",
     "torch>=2.12.0",
 ]
@@ -20,6 +23,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "mypy>=2.1.0",
+    "ruff>=0.15.16",
 ]
 
 [tool.mypy]

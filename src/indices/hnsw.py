@@ -41,7 +41,7 @@ class HNSWIndex(VectorIndex):
     def get_client(self) -> QdrantClient:
         """Create and return a QdrantClient connected to localhost."""
         if self.client is None:
-            self.client = QdrantClient("localhost", port=6333)
+            self.client = QdrantClient(os.getenv("QDRANT_HOST", "localhost"), port=6333)
         return self.client
 
     def build(self, embeddings: np.ndarray, passages: list[str] | None = None) -> None:

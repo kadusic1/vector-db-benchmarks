@@ -419,8 +419,11 @@ dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "qdrant-client" },
-    { name = "ruff" },
     { name = "scipy" },
+]
+
+[package.optional-dependencies]
+generate = [
     { name = "sentence-transformers" },
     { name = "torch" },
 ]
@@ -428,6 +431,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "mypy" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -437,14 +441,17 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.9" },
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "qdrant-client", specifier = ">=1.18.0" },
-    { name = "ruff", specifier = ">=0.15.16" },
     { name = "scipy", specifier = ">=1.17.1" },
-    { name = "sentence-transformers", specifier = ">=5.5.1" },
-    { name = "torch", specifier = ">=2.12.0" },
+    { name = "sentence-transformers", marker = "extra == 'generate'", specifier = ">=5.5.1" },
+    { name = "torch", marker = "extra == 'generate'", specifier = ">=2.12.0" },
 ]
+provides-extras = ["generate"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "mypy", specifier = ">=2.1.0" }]
+dev = [
+    { name = "mypy", specifier = ">=2.1.0" },
+    { name = "ruff", specifier = ">=0.15.16" },
+]
 
 [[package]]
 name = "datasets"

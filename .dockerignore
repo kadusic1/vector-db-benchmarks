@@ -1,0 +1,7 @@
+.git
+__pycache__/
+.venv
+data/
+output/
+qdrant_data/
+paper/

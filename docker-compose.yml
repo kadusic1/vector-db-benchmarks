@@ -15,8 +15,20 @@ services:
         target: /qdrant/config/production.yaml
     volumes:
       - ./qdrant_data:/qdrant/storage
+  app:
+    build: .
+    depends_on:
+      - qdrant
+    environment:
+      - QDRANT_HOST=qdrant
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./qdrant_data:/app/qdrant_data
 
 configs:
   qdrant_config:
     content: |
-      log_level: INFO
+      log_level: WARN
