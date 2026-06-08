@@ -199,28 +199,12 @@ class ExperimentPipeline:
             f"p={h1['p_value']:.6f}, "
             f"significant={h1['significant']}"
         )
+        metrics["_h1_wilcoxon_ok"] = h1["significant"]
 
-        h2 = self.stats.wilcoxon_test(
-            metrics["medians_ivfpq"],
-            metrics["medians_flat"],
-            alternative="less",
-        )
-        logger.info(
-            f"H2 (IVF-PQ < Flat): statistic={h2['statistic']:.2f}, "
-            f"p={h2['p_value']:.6f}, "
-            f"significant={h2['significant']}"
-        )
-
-        h3 = self.stats.wilcoxon_test(
-            metrics["medians_ivfpq"],
-            metrics["medians_hnsw_corrected"],
-            alternative="less",
-        )
-        logger.info(
-            f"H3 (IVF-PQ < HNSW): statistic={h3['statistic']:.2f}, "
-            f"p={h3['p_value']:.6f}, "
-            f"significant={h3['significant']}"
-        )
+        recall_hnsw = metrics["recall_hnsw"]
+        h1_recall_ok = recall_hnsw > 0.90
+        metrics["_h1_recall_ok"] = h1_recall_ok
+        logger.info(f"H1 (recall@10 > 90%): {recall_hnsw:.4f} > 0.90 = {h1_recall_ok}")
 
     def _phase_7_sweep(self) -> dict:
         logger.info("FAZA 7: Sweep parametara")
@@ -336,6 +320,12 @@ class ExperimentPipeline:
 
         curves = self._phase_7_sweep()
         self._phase_8_plots(curves, n_passages)
+
+        assert self.index_hnsw is not None
+        hnsw_memory_mb = self.index_hnsw.get_memory_mb()
+        self.benchmark_runner.verify_hypotheses(
+            metrics, curves, n_passages, hnsw_memory_mb
+        )
 
         elapsed = time.perf_counter() - start_time
         hours, rem = divmod(elapsed, 3600)
