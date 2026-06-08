@@ -1,2 +1,436 @@
 \section{Rezultati}
 \label{sec:rezultati}
+
+U ovom poglavlju prikazuju se i interpretiraju rezultati
+eksperimentalne evaluacije četiri konfiguracije vektorskih
+indeksa opisane u poglavlju~\ref{sec:metodologija}.
+Prikazane su deskriptivne statistike latencija, distribucije
+vizualizirane dijagramima kutije, memorijski otisak po
+konfiguraciji te krivulje kompromisa između tačnosti i
+latencije dobivene parametarskim pregledom.
+Na osnovu ovih rezultata vrši se formalna verifikacija
+istraživačkih hipoteza H1, H2 i H3.
+
+\subsection{Deskriptivna statistika latencija}
+\label{sec:stat_latencija}
+
+Za svaku od četiri konfiguracije indeksa izmjerena su
+latencija pretrage $1{.}000$ upita s po pet ponavljanja,
+što daje ukupno $5{.}000$ mjerenja po konfiguraciji.
+Deskriptivni statistički pokazatelji prikazani su u
+tabeli~\ref{tab:latencija_stat}, a vizualizacija
+distribucija na logaritamskoj skali prikazana je na
+slici~\ref{fig:boxplot_latencija}.
+
+\begin{table}[htbp]
+\centering
+\caption{Deskriptivna statistika latencija pretrage po
+         konfiguraciji indeksa. Sve vrijednosti
+         izražene su u milisekundama.}
+\label{tab:latencija_stat}
+\begin{tabular}{lrrrrr}
+\hline
+\textbf{Konfiguracija} &
+\textbf{Mean} &
+\textbf{Median} &
+\textbf{Std} &
+$\mathbf{P_{95}}$ &
+$\mathbf{P_{99}}$ \\
+\hline
+Flat   & 53{,}22 & 51{,}95 &  6{,}54 &  54{,}89 & 100{,}01 \\
+IVF    &  8{,}67 &  8{,}65 &  0{,}60 &   9{,}61 &  10{,}01 \\
+IVF-PQ &  1{,}12 &  1{,}11 &  0{,}07 &   1{,}24 &   1{,}28 \\
+HNSW   &  6{,}95 &  4{,}28 &  9{,}24 &  44{,}08 &  46{,}85 \\
+\hline
+\end{tabular}
+\end{table}
+
+Iz tabele~\ref{tab:latencija_stat} uočava se da
+\foreignlanguage{english}{Flat} indeks postiže
+aritmetičku sredinu latencije od $53{,}22$\,ms uz
+standardnu devijaciju od $6{,}54$\,ms,
+što odgovara iscrpnoj linearnoj pretrazi sa složenošću
+$\mathcal{O}(n)$ nad $500{.}000$ vektora.
+\foreignlanguage{english}{IVF} indeks postiže srednju
+latenciju od $8{,}67$\,ms uz standardnu devijaciju od
+$0{,}60$\,ms, što ukazuje na visoko konzistentno
+ponašanje klasterski ograničene pretrage.
+\foreignlanguage{english}{IVF-PQ} je najbrža
+konfiguracija s aritmetičkom sredinom od $1{,}12$\,ms
+i standardnom devijacijom od $0{,}07$\,ms,
+što je posljedica aproksimativnog računanja udaljenosti
+nad komprimiranim vektorima direktno u memoriji procesa.
+
+Posebno se ističe \foreignlanguage{english}{HNSW}
+konfiguracija, čija je medijana latencije $4{,}28$\,ms,
+ali standardna devijacija dostiže $9{,}24$\,ms,
+znatno višu vrijednost od svih ostalih konfiguracija.
+Percentilne vrijednosti $P_{95} = 44{,}08$\,ms
+i $P_{99} = 46{,}85$\,ms otkrivaju prisustvo izrazito
+dugog desnog repa distribucije latencija, vidljivog
+na slici~\ref{fig:boxplot_latencija}.
+Ova pojava pripisuje se arhitekturalnom overheadu
+\foreignlanguage{english}{Qdrant} servisa koji radi
+kao produkcijski mikroservis s mrežnim interfejsom.
+Izmjereni mrežni overhead iznosi $0{,}68$\,ms i
+oduzet je na nivou medijane pri apsolutnom poređenju
+s \foreignlanguage{english}{FAISS} konfiguracijama,
+u skladu s metodologijom opisanom u
+poglavlju~\ref{sec:indeksi}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{%
+        ../images/boxplot_latency.pdf}
+    \caption{Raspodjela latencija po konfiguraciji
+             indeksa prikazana na logaritamskoj skali.
+             Uočava se izrazito dugi desni rep
+             distribucije za
+             \foreignlanguage{english}{HNSW}
+             konfiguraciju u poređenju s kompaktnim
+             rasporedima
+             \foreignlanguage{english}{IVF} i
+             \foreignlanguage{english}{IVF-PQ}.}
+    \label{fig:boxplot_latencija}
+\end{figure}
+
+\subsection{Memorijski otisak indeksa}
+\label{sec:memorija}
+
+Memorijski otisak svake konfiguracije prikazan je na
+slici~\ref{fig:memorija}.
+\foreignlanguage{english}{Flat} indeks zauzima
+$1{.}464{,}8$\,MB jer se svi vektori pohranjuju u
+punoj \foreignlanguage{english}{float32} preciznosti.
+\foreignlanguage{english}{IVF} zauzima
+$1{.}469{,}4$\,MB, blago više od
+\foreignlanguage{english}{Flat} indeksa zbog pohrane
+centroida klastera i pratećih posting lista.
+\foreignlanguage{english}{IVF-PQ} drastično reducira
+memorijski otisak na $35{,}8$\,MB zahvaljujući
+produktnoj kvantizaciji opisanoj u
+poglavlju~\ref{sec:vektorska_kvantizacija},
+što iznosi kompresijski omjer od $40{,}88\times$ u
+odnosu na \foreignlanguage{english}{Flat} indeks.
+\foreignlanguage{english}{HNSW} zauzima
+$2{.}139{,}1$\,MB, znatno više od svih ostalih
+konfiguracija, jer grafovska struktura pohranjuje
+i vektorske vrijednosti i veze grafovskog indeksa
+na svakom sloju hijerarhije.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{%
+        ../images/memory_comparison.pdf}
+    \caption{Memorijski otisak indeksa po
+             konfiguraciji u megabajtima.
+             \foreignlanguage{english}{IVF-PQ}
+             postiže kompresijski omjer od
+             $40{,}88\times$ u odnosu na
+             \foreignlanguage{english}{Flat},
+             dok \foreignlanguage{english}{HNSW}
+             premašuje granicu od $2$\,GB.}
+    \label{fig:memorija}
+\end{figure}
+
+\subsection{Sweep parametara i krivulje kompromisa}
+\label{sec:sweep}
+
+Parametarskim pregledom ispitan je uticaj promjene
+ključnih parametara pretrage na kompromis između
+tačnosti i latencije za sva tri aproksimativna indeksa.
+Za \foreignlanguage{english}{IVF} i
+\foreignlanguage{english}{IVF-PQ} variran je parametar
+$n_{\mathrm{probe}} \in \{8,\,16,\,32,\,64,\,128\}$,
+a za \foreignlanguage{english}{HNSW} parametar
+$ef_{\mathrm{search}} \in \{50,\,100,\,200,\,400\}$.
+Rezultati su prikazani u
+tabeli~\ref{tab:sweep_rezultati} i vizualizirani
+na slici~\ref{fig:tradeoff}.
+
+\begin{table}[htbp]
+\centering
+\caption{Rezultati parametarskog pregleda za tri
+         aproksimativna indeksa s variranim
+         parametrima pretrage.}
+\label{tab:sweep_rezultati}
+\begin{tabular}{llrr}
+\hline
+\textbf{Indeks} &
+\textbf{Parametar} &
+\textbf{Recall@10} &
+\textbf{Latencija (ms)} \\
+\hline
+IVF &
+$n_{\mathrm{probe}} = 8$   & 0{,}8848 &  2{,}25 \\
+IVF &
+$n_{\mathrm{probe}} = 16$  & 0{,}9307 &  4{,}41 \\
+IVF &
+$n_{\mathrm{probe}} = 32$  & 0{,}9564 &  8{,}62 \\
+IVF &
+$n_{\mathrm{probe}} = 64$  & 0{,}9790 & 17{,}11 \\
+IVF &
+$n_{\mathrm{probe}} = 128$ & 0{,}9945 & 34{,}34 \\
+\hline
+IVF-PQ &
+$n_{\mathrm{probe}} = 8$   & 0{,}6448 & 0{,}31 \\
+IVF-PQ &
+$n_{\mathrm{probe}} = 16$  & 0{,}6611 & 0{,}57 \\
+IVF-PQ &
+$n_{\mathrm{probe}} = 32$  & 0{,}6679 & 1{,}08 \\
+IVF-PQ &
+$n_{\mathrm{probe}} = 64$  & 0{,}6718 & 2{,}11 \\
+IVF-PQ &
+$n_{\mathrm{probe}} = 128$ & 0{,}6741 & 4{,}19 \\
+\hline
+HNSW &
+$ef_{\mathrm{search}} = 50$  & 0{,}9872 & 6{,}12 \\
+HNSW &
+$ef_{\mathrm{search}} = 100$ & 0{,}9943 & 6{,}40 \\
+HNSW &
+$ef_{\mathrm{search}} = 200$ & 0{,}9979 & 7{,}82 \\
+HNSW &
+$ef_{\mathrm{search}} = 400$ & 0{,}9991 & 9{,}03 \\
+\hline
+\end{tabular}
+\end{table}
+
+Za \foreignlanguage{english}{IVF} indeks uočena je
+gotovo linearna veza između parametra
+$n_{\mathrm{probe}}$ i latencije pretrage.
+Povećanjem $n_{\mathrm{probe}}$ s $8$ na $128$,
+latencija raste s $2{,}25$\,ms na $34{,}34$\,ms,
+tj.\ oko $15\times$, dok \foreignlanguage{english}%
+{recall@10} raste s $0{,}8848$ na $0{,}9945$,
+porast od $10{,}97$ procentnih poena.
+Time je potvrđeno da $n_{\mathrm{probe}}$ pruža
+kontinuiran i predvidiv kompromis između tačnosti
+i latencije za \foreignlanguage{english}{IVF}
+indeks.
+
+Za \foreignlanguage{english}{IVF-PQ} indeks
+primjećuje se fundamentalno drugačije ponašanje.
+Povećanjem $n_{\mathrm{probe}}$ s $8$ na $128$,
+latencija raste oko $13\times$, ali
+\foreignlanguage{english}{recall@10} mijenja se
+samo s $0{,}6448$ na $0{,}6741$, porast od svega
+$2{,}93$ procentna poena.
+Iz ovoga slijedi da je gornja granica tačnosti
+\foreignlanguage{english}{IVF-PQ} fundamentalno
+određena gubitkom informacija uslijed produktne
+kvantizacije, a ne opsegom pretrage klastera.
+Šire pretraživanje klastera ne može nadoknaditi
+aproksimativnost pri računanju udaljenosti nad
+komprimiranim kodovima.
+
+\foreignlanguage{english}{HNSW} indeks pokazuje
+najpovoljniji kompromis između tačnosti i latencije
+od sva tri razmatrana aproksimativna pristupa.
+Već pri $ef_{\mathrm{search}} = 50$ postiže se
+\foreignlanguage{english}{recall@10} od $0{,}9872$
+uz latenciju od $6{,}12$\,ms. Povećanjem na
+$ef_{\mathrm{search}} = 400$ tačnost dostiže
+$0{,}9991$ uz latenciju od $9{,}03$\,ms,
+što je porast od svega $2{,}91$\,ms uz povećanje
+tačnosti za $1{,}19$ procentnih poena.
+Ovakvo ponašanje ukazuje na to da grafovska
+struktura \foreignlanguage{english}{HNSW} indeksa
+efikasno pronalazi gotovo sve relevantne rezultate
+čak i s relativno malim skupom kandidata
+$ef_{\mathrm{search}}$.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{%
+        ../images/tradeoff_curve.pdf}
+    \caption{Krivulje kompromisa između tačnosti i
+             latencije za tri aproksimativna indeksa.
+             \foreignlanguage{english}{HNSW} i
+             \foreignlanguage{english}{IVF} operišu
+             u visokom opsegu tačnosti (iznad $0{,}88$),
+             dok je \foreignlanguage{english}{IVF-PQ}
+             ograničen na
+             \foreignlanguage{english}{recall@10}
+             između $0{,}64$ i $0{,}68$ bez obzira
+             na vrijednost $n_{\mathrm{probe}}$.}
+    \label{fig:tradeoff}
+\end{figure}
+
+\subsection{Verifikacija hipoteza}
+\label{sec:verifikacija_hipoteza}
+
+Na osnovu prikazanih rezultata vrši se formalna
+verifikacija istraživačkih hipoteza postavljenih
+u poglavlju~\ref{sec:ciljevi}. Zbirni pregled
+tačnosti, latencije i memorijskog otiska prikazan
+je u tabeli~\ref{tab:zbirni_pregled}.
+
+\begin{table}[htbp]
+\centering
+\caption{Zbirni pregled ključnih metrika po
+         konfiguraciji indeksa.}
+\label{tab:zbirni_pregled}
+\begin{tabular}{lrrr}
+\hline
+\textbf{Konfiguracija} &
+\textbf{Recall@10} &
+\textbf{Mean (ms)} &
+\textbf{Memorija (MB)} \\
+\hline
+Flat   & 1{,}0000 & 53{,}22 & 1{.}464{,}8 \\
+IVF    & 0{,}9564 &  8{,}67 & 1{.}469{,}4 \\
+IVF-PQ & 0{,}6679 &  1{,}12 &      35{,}8 \\
+HNSW   & 0{,}9961 &  6{,}95 & 2{.}139{,}1 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Hipoteza H1}
+\label{sec:h1}
+
+Hipoteza H1 tvrdi da \foreignlanguage{english}{HNSW}
+indeks postiže statistički značajno nižu latenciju
+upita u poređenju s \foreignlanguage{english}{IVF}
+indeksom uz zadržavanje
+\foreignlanguage{english}{recall@10} iznad $90\%$.
+
+Wilcoxon \foreignlanguage{english}{signed-rank} test
+primijenjen je na parove izmjerenih latencija
+\foreignlanguage{english}{HNSW} i
+\foreignlanguage{english}{IVF} konfiguracija.
+Testna statistika iznosi $W = 51{.}069$ uz
+vrijednost $p \approx 0$, što je daleko ispod praga
+$p < 0{,}05$. Nulta hipoteza o jednakim
+distribucijama latencija odbacuje se, a razlika
+između konfiguracija proglašava se statistički
+značajnom.
+Medijana latencije \foreignlanguage{english}{HNSW}
+iznosi $4{,}28$\,ms naspram $8{,}65$\,ms za
+\foreignlanguage{english}{IVF}, a izmjereni
+\foreignlanguage{english}{recall@10} od $0{,}9961$
+premašuje prag od $90\%$.
+Oba uvjeta hipoteze H1 su ispunjena.
+
+\textbf{Hipoteza H1 je potvrđena.}
+
+Ipak, napominje se važna praktična napomena.
+Medijana ne opisuje potpuno ponašanje
+\foreignlanguage{english}{HNSW} indeksa u uvjetima
+opterećenja. Vrijednosti $P_{95} = 44{,}08$\,ms i
+$P_{99} = 46{,}85$\,ms ukazuju na to da se u
+najlošijih $5\%$ slučajeva latencija
+\foreignlanguage{english}{HNSW} povećava više od
+deset puta u odnosu na medijanu, što je znatno
+nepovoljnije od \foreignlanguage{english}{IVF}
+($P_{95} = 9{,}61$\,ms).
+Ovaj nalaz pripisuje se mrežnom i
+serijalizacijskom overheadu
+\foreignlanguage{english}{Qdrant} mikroservisa,
+koji u određenim scenarijima uzrokuje povećanu
+varijabilnost odgovora. U produkcijskim sistemima
+osjetljivim na latenciju repova, ova razlika
+je od kritičnog inžinjerskog značaja i treba
+je uzeti u obzir pri odabiru indeksne strukture.
+
+\subsubsection{Hipoteza H2}
+\label{sec:h2}
+
+Hipoteza H2 tvrdi da primjena produktne
+kvantizacije smanjuje memorijski otisak za
+najmanje $4\times$ u odnosu na nekomprimirani
+\foreignlanguage{english}{flat} indeks, uz
+smanjenje \foreignlanguage{english}{recall@10}
+manje od $5$ procentnih poena.
+
+Izmjereni memorijski otisak
+\foreignlanguage{english}{Flat} indeksa iznosi
+$1{.}464{,}8$\,MB, a
+\foreignlanguage{english}{IVF-PQ} indeksa
+$35{,}8$\,MB, što daje kompresijski omjer od
+$40{,}88\times$. Ovaj omjer znatno premašuje
+prag od $4\times$ i prvi uvjet hipoteze H2
+ispunjen je s rezervom.
+
+Međutim, izmjereni \foreignlanguage{english}%
+{recall@10} za \foreignlanguage{english}{IVF-PQ}
+iznosi $0{,}6679$, dok gornju granicu tačnosti
+definira \foreignlanguage{english}{Flat} indeks
+s vrijednošću $1{,}0000$.
+Pad tačnosti iznosi $0{,}3321$, odnosno
+$33{,}21$ procentnih poena, što daleko premašuje
+propisani prag od $5$ procentnih poena.
+Drugi uvjet hipoteze H2 nije ispunjen.
+
+\textbf{Hipoteza H2 nije potvrđena u cjelosti.}
+
+Memorijska kompresija od $40{,}88\times$
+potvrđena je s značajnom rezervom, ali pad
+tačnosti od $33{,}21$ procentnih poena ukazuje
+na fundamentalno ograničenje produktne
+kvantizacije u opisanoj konfiguraciji.
+Ovo je direktna posljedica agresivnih parametara
+kompresije $M = 64$ podvektora i
+$n_{\mathrm{bits}} = 8$ bita po podvektoru.
+Pri ovakvoj konfiguraciji vektori su podijeljeni
+na $64$ disjunktna podprostora od kojih svaki
+bilježi grešku aproksimacije centroidu
+odgovarajućeg \foreignlanguage{english}{codebook}
+mehanizma. Kvantizacijska greška u svakom od
+$64$ potprostora akumulira se pri rekonstrukciji
+aproksimativnih udaljenosti prema
+jednadžbi~\ref{eq:pq_dist}, što degradira
+ukupnu tačnost pretrage.
+Iz parametarskog pregleda vidljivo je da
+povećanje $n_{\mathrm{probe}}$ s $8$ na $128$
+donosi svega $2{,}93$ procentna poena poboljšanja
+tačnosti uz $13\times$ duži odziv,
+što potvrđuje da je gornja granica tačnosti
+određena kvantizacijom, a ne opsegom pretrage.
+Smanjenjem broja potprostora $M$ ili povećanjem
+$n_{\mathrm{bits}}$ mogao bi se postići povoljniji
+balans između kompresije i tačnosti na štetu
+memorijske uštedine.
+
+\subsubsection{Hipoteza H3}
+\label{sec:h3}
+
+Hipoteza H3 tvrdi da kombinacija
+\foreignlanguage{english}{IVF} i produktne
+kvantizacije pruža bolji kompromis između
+tačnosti i latencije od samostalnog
+\foreignlanguage{english}{HNSW} pristupa
+kada je memorijski budžet ograničen ispod $2$\,GB.
+
+Izmjereni memorijski otisak
+\foreignlanguage{english}{IVF-PQ} indeksa iznosi
+$35{,}8$\,MB, što je znatno ispod postavljenog
+budžeta od $2$\,GB. Nasuprot tome, memorijski
+otisak \foreignlanguage{english}{HNSW} indeksa
+iznosi $2{.}139{,}1$\,MB i premašuje zadani
+budžet za $91{,}1$\,MB. U uvjetima strogog
+memorijskog ograničenja od $2$\,GB,
+\foreignlanguage{english}{HNSW} ne može biti
+primijenjen, dok je \foreignlanguage{english}%
+{IVF-PQ} jedina razmatrana konfiguracija koja
+staje u zadani budžet.
+
+\textbf{Hipoteza H3 je potvrđena.}
+
+\foreignlanguage{english}{IVF-PQ} predstavlja
+jedini izvedivi kompromis između tačnosti i
+latencije unutar budžeta od $2$\,GB.
+Iz krivulje kompromisa na
+slici~\ref{fig:tradeoff} vidljivo je da
+\foreignlanguage{english}{IVF-PQ} nudi
+latencije između $0{,}31$\,ms i $4{,}19$\,ms
+uz tačnost u rasponu $0{,}64$ do $0{,}67$,
+dok je \foreignlanguage{english}{HNSW}
+isključen iz razmatranja zbog nedostupnosti
+unutar budžeta. Napominje se da ovaj zaključak
+važi isključivo pod postavljenim memorijskim
+ograničenjem. U scenarijima bez strogog
+budžeta, \foreignlanguage{english}{HNSW}
+ostaje superiorniji izbor s obzirom na
+znatno višu tačnost ($0{,}9961$ naspram
+$0{,}6679$) uz usporedivu ili nižu latenciju
+na nivou medijane.
