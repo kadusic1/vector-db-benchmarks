@@ -262,8 +262,8 @@ class ExperimentPipeline:
         assert self.index_hnsw is not None
         logger.info("FAZA 8: Generisanje grafika")
 
-        PlotGenerator.recall_latency_curves(curves, "output/figures/tradeoff_curve.png")
-        logger.info("Generisan: output/figures/tradeoff_curve.png")
+        PlotGenerator.recall_latency_curves(curves, "output/figures/tradeoff_curve.pdf")
+        logger.info("Generisan: output/figures/tradeoff_curve.pdf")
 
         latencies_dict = {
             "Flat": self.latencies["flat"],
@@ -272,9 +272,9 @@ class ExperimentPipeline:
             "HNSW": self.latencies["hnsw"],
         }
         PlotGenerator.latency_boxplots(
-            latencies_dict, "output/figures/boxplot_latency.png"
+            latencies_dict, "output/figures/boxplot_latency.pdf"
         )
-        logger.info("Generisan: output/figures/boxplot_latency.png")
+        logger.info("Generisan: output/figures/boxplot_latency.pdf")
 
         flat_size = MetricsCalculator.get_index_size_mb("", n_vectors=n_passages)
         ivf_size = MetricsCalculator.get_index_size_mb(
@@ -292,9 +292,9 @@ class ExperimentPipeline:
             "HNSW": hnsw_size,
         }
         PlotGenerator.memory_comparison(
-            memory_mb, "output/figures/memory_comparison.png"
+            memory_mb, "output/figures/memory_comparison.pdf"
         )
-        logger.info("Generisan: output/figures/memory_comparison.png")
+        logger.info("Generisan: output/figures/memory_comparison.pdf")
 
     def run(self) -> None:
         """Execute all phases of the benchmark pipeline.

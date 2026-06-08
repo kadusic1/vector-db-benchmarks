@@ -12,7 +12,7 @@ class PlotGenerator:
         Args:
             curves: Dict mapping index name to list of
                 (recall, latency) tuples.
-            save_path: Path to save the PNG figure.
+            save_path: Path to save the figure.
         """
         plt.figure(figsize=(10, 6))
         for name, points in curves.items():
@@ -35,7 +35,7 @@ class PlotGenerator:
 
         Args:
             latencies: Dict mapping config name to latency list.
-            save_path: Path to save the PNG figure.
+            save_path: Path to save the figure.
         """
         plt.figure(figsize=(10, 6))
         labels = list(latencies.keys())
@@ -57,7 +57,7 @@ class PlotGenerator:
 
         Args:
             memory_mb: Dict mapping config name to memory in MB.
-            save_path: Path to save the PNG figure.
+            save_path: Path to save the figure.
         """
         plt.figure(figsize=(8, 5))
         labels = list(memory_mb.keys())
