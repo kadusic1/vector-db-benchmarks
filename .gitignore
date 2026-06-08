@@ -12,3 +12,13 @@ wheels/
 # Qdrant data directory
 qdrant_data
 literature
+
+results
+
+# Environment variables
+.env
+
+# Generated data, indices, and figures
+data/
+artifacts/
+figures/

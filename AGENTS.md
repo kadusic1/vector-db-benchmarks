@@ -16,6 +16,15 @@
 - **Minimal Impact**  -  only touch what is necessary. Avoid introducing
   bugs by changing unrelated code.
 
+## Coding style
+
+Follow these rules:
+- 80 char rule
+- Google styled docstrings (Returns and Args)
+- Type Hinting
+- SOLID principles
+- DRY principle
+
 ## Paper writing rules
 
 - **Language** — written in Bosnian..
