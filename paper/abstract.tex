@@ -1,0 +1,57 @@
+%------------------------------------------------------------------
+% SAŽETAK / ABSTRACT
+%------------------------------------------------------------------
+
+\newpage
+\thispagestyle{plain}
+
+% ---------- BOSANSKI ----------
+\section*{Sažetak}
+\addcontentsline{toc}{section}{Sažetak}
+
+Rad predstavlja empirijsku evaluaciju četiri konfiguracije vektorskih
+indeksa (Flat, IVF, IVF-PQ i HNSW) na skupu podataka MS~MARCO~v2.1,
+korištenjem $500{.}000$ pasusa kodiranih u $768$-dimenzionalne vektore
+modelom \textit{all-mpnet-base-v2}. Mjerene su latencija upita,
+tačnost pretrage (\textit{Recall@10}) i memorijski otisak indeksa
+uz $1{.}000$ upita po konfiguraciji. HNSW postiže najpovoljniji
+kompromis između tačnosti ($0{,}9972$) i latencije (medijana
+$4{,}451$\,ms), ali uz visoku varijabilnost u repovima distribucije
+($P_{95} = 44{,}118$\,ms). IVF pruža konzistentno ponašanje
+($8{,}576$\,ms, \textit{Recall@10}~$= 0{,}9564$), dok IVF-PQ
+ostvaruje kompresiju od $40{,}88\times$ i najnižu latenciju
+($1{,}117$\,ms) uz pad tačnosti od $33{,}21$ procentnih poena.
+Hipoteza H1 je potvrđena, H2 djelimično, a H3 potvrđena.
+
+\medskip
+\noindent\textbf{Ključne riječi:}
+vektorske baze podataka,
+aproksimativna pretraga najbližih susjeda,
+HNSW, IVF, produktna kvantizacija,
+MS MARCO, vektorske reprezentacije,
+pretraživanje informacija.
+
+
+% ---------- ENGLISH ----------
+\section*{Abstract}
+
+This paper presents an empirical evaluation of four vector index
+configurations (Flat, IVF, IVF-PQ, and HNSW) on the MS~MARCO~v2.1
+dataset, using $500{,}000$ passages encoded into $768$-dimensional
+vectors with the \textit{all-mpnet-base-v2} model. Query latency,
+search accuracy (\textit{Recall@10}), and memory footprint were
+measured across $1{,}000$ queries per configuration. HNSW achieves
+the best accuracy--latency trade-off ($0.9972$, median $4.451$\,ms),
+but exhibits high tail latency ($P_{95} = 44.118$\,ms). IVF offers
+consistent behaviour ($8.576$\,ms, \textit{Recall@10}~$= 0.9564$),
+while IVF-PQ achieves $40.88\times$ compression and the lowest
+latency ($1.117$\,ms) at a $33.21$ percentage point accuracy cost.
+Hypothesis H1 is confirmed, H2 partially confirmed, and H3 confirmed.
+
+\medskip
+\noindent\textbf{Keywords:}
+vector databases,
+approximate nearest neighbour search,
+HNSW, IVF, product quantization,
+MS MARCO, embeddings,
+information retrieval.
