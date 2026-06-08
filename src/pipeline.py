@@ -1,4 +1,3 @@
-import json
 import os
 import time
 
@@ -50,15 +49,7 @@ class ExperimentPipeline:
     def _check_data_exists() -> None:
         missing = [p for p in _DATA_FILES if not os.path.exists(p)]
         if missing:
-            files = "\n  ".join(missing)
-            raise FileNotFoundError(
-                "Nedostaju data fajlovi. Pokreni:\n"
-                "  python scripts/create_embeddings.py   (1h, racuna "
-                "embeddinge)\n"
-                "  python scripts/download_embeddings.py (brzi download "
-                "sa HF Hub)\n"
-                f"  {files}"
-            )
+            raise FileNotFoundError("Nedostaju data fajlovi.")
 
     def _phase_1_load_data(self) -> None:
         self._check_data_exists()
@@ -139,14 +130,6 @@ class ExperimentPipeline:
         )
         self.latencies["hnsw"] = lat_hnsw
         self.results["hnsw"] = res_hnsw
-
-    def _phase_4_save(self) -> None:
-        results_dir = "results"
-        for name in ["flat", "ivf", "ivfpq", "hnsw"]:
-            with open(f"{results_dir}/latencies_{name}.json", "w") as f:
-                json.dump(self.latencies[name], f)
-            with open(f"{results_dir}/results_{name}.json", "w") as f:
-                json.dump(self.results[name], f)
 
     def _phase_5_metrics(self) -> dict:
         logger.info("FAZA 5: Metrike")
@@ -295,8 +278,8 @@ class ExperimentPipeline:
         assert self.index_hnsw is not None
         logger.info("FAZA 8: Generisanje grafika")
 
-        PlotGenerator.recall_latency_curves(curves, "figures/tradeoff_curve.png")
-        logger.info("Generisan: figures/tradeoff_curve.png")
+        PlotGenerator.recall_latency_curves(curves, "output/figures/tradeoff_curve.png")
+        logger.info("Generisan: output/figures/tradeoff_curve.png")
 
         latencies_dict = {
             "Flat": self.latencies["flat"],
@@ -304,15 +287,17 @@ class ExperimentPipeline:
             "IVF-PQ": self.latencies["ivfpq"],
             "HNSW": self.latencies["hnsw"],
         }
-        PlotGenerator.latency_boxplots(latencies_dict, "figures/boxplot_latency.png")
-        logger.info("Generisan: figures/boxplot_latency.png")
+        PlotGenerator.latency_boxplots(
+            latencies_dict, "output/figures/boxplot_latency.png"
+        )
+        logger.info("Generisan: output/figures/boxplot_latency.png")
 
         flat_size = MetricsCalculator.get_index_size_mb("", n_vectors=n_passages)
         ivf_size = MetricsCalculator.get_index_size_mb(
-            "artifacts/index_ivf.faiss", n_vectors=n_passages
+            "output/artifacts/index_ivf.faiss", n_vectors=n_passages
         )
         ivfpq_size = MetricsCalculator.get_index_size_mb(
-            "artifacts/index_ivfpq.faiss", n_vectors=n_passages
+            "output/artifacts/index_ivfpq.faiss", n_vectors=n_passages
         )
         hnsw_size = self.index_hnsw.get_memory_mb()
 
@@ -322,8 +307,10 @@ class ExperimentPipeline:
             "IVF-PQ": ivfpq_size,
             "HNSW": hnsw_size,
         }
-        PlotGenerator.memory_comparison(memory_mb, "figures/memory_comparison.png")
-        logger.info("Generisan: figures/memory_comparison.png")
+        PlotGenerator.memory_comparison(
+            memory_mb, "output/figures/memory_comparison.png"
+        )
+        logger.info("Generisan: output/figures/memory_comparison.png")
 
     def run(self) -> None:
         """Execute all phases of the benchmark pipeline.
@@ -333,7 +320,7 @@ class ExperimentPipeline:
         ``scripts/download_embeddings.py``)
         """
         start_time = time.perf_counter()
-        for d in ["artifacts", "results", "figures"]:
+        for d in ["output/artifacts", "output/figures"]:
             os.makedirs(d, exist_ok=True)
 
         self._phase_1_load_data()
@@ -344,8 +331,6 @@ class ExperimentPipeline:
         self._phase_2_indices()
         self._phase_3_overhead()
         self._phase_4_benchmark()
-        self._phase_4_save()
-
         metrics = self._phase_5_metrics()
         self._phase_6_statistics(metrics)
 
@@ -356,7 +341,6 @@ class ExperimentPipeline:
         hours, rem = divmod(elapsed, 3600)
         minutes, seconds = divmod(rem, 60)
         logger.info(
-            f"Ukupno vrijeme simulacije: {int(hours):02d}:{int(minutes):02d}:"
-            f"{int(seconds):02d}"
+            f"Ukupno vrijeme simulacije: {int(hours)}h {int(minutes)}m {int(seconds)}s"
         )
-        logger.info("Sve faze zavrsene. Rezultati su spremljeni u results/ i figures/.")
+        logger.info("Sve faze zavrsene. Grafici su spremljeni u output/figures/.")

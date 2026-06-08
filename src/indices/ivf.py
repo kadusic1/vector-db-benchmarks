@@ -19,7 +19,7 @@ class IVFIndex(VectorIndex):
         dim: int = 768,
         nlist: int = 256,
         nprobe: int = 32,
-        artifact_path: str = "artifacts/index_ivf.faiss",
+        artifact_path: str = "output/artifacts/index_ivf.faiss",
     ) -> None:
         self.dim = dim
         self.nlist = nlist

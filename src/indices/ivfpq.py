@@ -21,7 +21,7 @@ class IVFPQIndex(VectorIndex):
         M: int = 64,
         nbits: int = 8,
         nprobe: int = 32,
-        artifact_path: str = "artifacts/index_ivfpq.faiss",
+        artifact_path: str = "output/artifacts/index_ivfpq.faiss",
     ) -> None:
         self.dim = dim
         self.nlist = nlist
