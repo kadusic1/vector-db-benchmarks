@@ -67,6 +67,41 @@ Preuzeti ih sa HuggingFace Datasets-a:
    +-- queries.parquet
    ```
 
+## Alternativa preuzimanju podataka NIJE PREPORUČENO - generisanje embeddinga
+
+Umjesto preuzimanja gotovih embeddinga sa HuggingFace-a, moguce je
+generisati ih lokalno. **Ovo se ne preporucuje** -- detalji su
+navedeni u nastavku.
+
+### Kako pokrenuti
+
+Embedding engine zahtijeva `sentence-transformers` i `torch`, koji
+nisu ukljuceni u osnovne zavisnosti. Potrebno ih je instalirati
+rucno (ne kroz Docker):
+
+```bash
+pip install -e ".[generate]"
+```
+
+Zatim pokrenuti skriptu:
+
+```bash
+python scripts/create_embeddings.py
+```
+
+Ovo **ne radi kroz Docker** -- enkodiranje 500k pasusa zahtijeva
+pristup GPU-u i vise RAM-a nego sto je docker container-u
+dodijeljeno. Skripta se pokrece direktno na host masini (ili
+u virtuelnom okviru sa GPU propustanjem).
+
+### Zasto se ne preporucuje
+
+1. **Vrijeme** -- enkodiranje 500k pasusa modelom
+   `all-mpnet-base-v2` traje ~1 sat na GPU-u, a visestruko duze
+   na CPU-u.
+2. **Hardver** -- preporucuje se GPU sa >=8 GB VRAM; na CPU-u je
+   potrebno 16+ GB RAM uz znacajno duze vrijeme.
+
 ## Pokretanje
 
 ```bash
