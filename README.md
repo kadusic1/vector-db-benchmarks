@@ -14,7 +14,6 @@ database_optimization/
 +-- Dockerfile                  Python 3.13 image sa uv
 +-- docker-compose.yml          Qdrant + app servis
 +-- pyproject.toml              Zavisnosti (bez torch/ST)
-+-- .env.example                Template za .env
 +-- .dockerignore               Sprecava data/ u build contextu
 +-- src/
 |   +-- pipeline.py             Orkestracija 8 faza
@@ -105,7 +104,6 @@ u virtuelnom okviru sa GPU propustanjem).
 ## Pokretanje
 
 ```bash
-cp .env.example .env
 docker compose up --build
 ```
 

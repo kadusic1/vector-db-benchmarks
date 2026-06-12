@@ -21,8 +21,6 @@ services:
       - qdrant
     environment:
       - QDRANT_HOST=qdrant
-    env_file:
-      - .env
     volumes:
       - ./data:/app/data
       - ./output:/app/output
