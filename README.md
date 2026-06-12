@@ -79,13 +79,13 @@ nisu ukljuceni u osnovne zavisnosti. Potrebno ih je instalirati
 rucno (ne kroz Docker):
 
 ```bash
-pip install -e ".[generate]"
+uv sync --extra generate
 ```
 
 Zatim pokrenuti skriptu:
 
 ```bash
-python scripts/create_embeddings.py
+uv run python scripts/create_embeddings.py
 ```
 
 Ovo **ne radi kroz Docker** -- enkodiranje 500k pasusa zahtijeva
