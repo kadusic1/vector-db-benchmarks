@@ -16,6 +16,7 @@ literature
 
 # Generated output and data directories
 data/
+data_test/
 output/
 
 # Qdrant persistent storage (Docker creates as root)
