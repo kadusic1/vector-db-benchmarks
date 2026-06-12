@@ -51,8 +51,12 @@ Aplikacija zahtijeva 11 Parquet fajlova u `data/` folderu.
 Preuzeti ih sa HuggingFace Datasets-a:
 
 1. Otvoriti https://huggingface.co/datasets/kadusicadi/ms-marco-embeddings
-2. Skinuti sve fajlove u lokalni `data/` folder (kreirati ga ako
-   ne postoji):
+2. Otići na `files_and_versions`
+3. Skinuti sve fajlove u lokalni `data/` folder (kreirati ga ako
+   ne postoji)
+4. **Embeddingsi** su podijeljeni na više fajlova radi lakšeg preuzimanja. Ukupna
+   veličina embeddingsa za preuzimanje iznosi `1.65 GB`. Konkretno ovdje ima 11
+   `parquet` fajlova koji se trebaju preuzeti:
 
    ```
    data/
